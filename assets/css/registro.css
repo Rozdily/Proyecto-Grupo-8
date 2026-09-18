@@ -1,0 +1,219 @@
+/* Reset General */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f4f6f9;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* --- NAVBAR SUPERIOR --- */
+.navbar-upds {
+    background-color: #004481; /* Azul UPDS */
+    color: #ffffff;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 10;
+}
+
+.navbar-marca {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-texto {
+    font-size: 24px;
+    font-weight: 900;
+}
+
+.separador {
+    color: #ffffff66;
+}
+
+.tutorias {
+    font-size: 15px;
+    color: #e0e0e0;
+}
+
+.navbar-usuario-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.nombre-corto {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.avatar-mini {
+    background-color: #134074;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 13px;
+    font-weight: bold;
+    border: 2px solid #ffffff33;
+}
+
+/* --- ESTRUCTURA DEL PANEL --- */
+.contenedor-portal {
+    display: flex;
+    flex: 1;
+    height: calc(100vh - 60px);
+}
+
+.contenido-panel {
+    flex: 1;
+    padding: 32px;
+    overflow-y: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+}
+
+/* --- TARJETA DEL FORMULARIO --- */
+.tarjeta-formulario {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    padding: 32px;
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.formulario-cabecera {
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+}
+
+.formulario-cabecera h2 {
+    color: #1b1b1b;
+    font-size: 22px;
+}
+
+.subtitulo {
+    color: #666666;
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+/* Cajas de Error Estilizadas */
+.alerta-error {
+    background-color: #fce8e6;
+    border: 1px solid #f2b8b5;
+    color: #b3261e;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    margin-bottom: 24px;
+    font-weight: 500;
+}
+
+/* --- CAMPOS DEL FORMULARIO --- */
+.formulario-upds {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.grupo-fila {
+    display: flex;
+    gap: 20px;
+}
+
+.grupo-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+
+.etiqueta-formulario {
+    font-size: 13px;
+    font-weight: 600;
+    color: #555555;
+}
+
+/* Estilo Inputs de Microsoft / UPDS */
+.campo-entrada, .campo-seleccion {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #666666;
+    padding: 8px 4px;
+    font-size: 15px;
+    outline: none;
+    background-color: transparent;
+    color: #1b1b1b;
+    transition: border-bottom-color 0.2s;
+}
+
+.campo-entrada:focus, .campo-seleccion:focus {
+    border-bottom: 2px solid #0067b8;
+}
+
+.campo-seleccion {
+    cursor: pointer;
+}
+
+/* --- SECCIÓN BOTONES --- */
+.seccion-botones {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 16px;
+    margin-top: 12px;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 20px;
+}
+
+.btn-cancelar {
+    color: #0067b8;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.btn-cancelar:hover {
+    text-decoration: underline;
+}
+
+.btn-guardar {
+    background-color: #0067b8;
+    color: #ffffff;
+    border: none;
+    padding: 10px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-guardar:hover {
+    background-color: #005da6;
+}
+
+/* Celulares */
+@media (max-width: 600px) {
+    .grupo-fila {
+        flex-direction: column;
+        gap: 20px;
+    }
+}
