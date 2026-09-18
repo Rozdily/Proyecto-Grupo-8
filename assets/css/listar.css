@@ -1,0 +1,238 @@
+/* Reset General */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f4f6f9;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* --- NAVBAR SUPERIOR --- */
+.navbar-upds {
+    background-color: #004481; /* Azul UPDS */
+    color: #ffffff;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 10;
+}
+
+.navbar-marca {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-texto {
+    font-size: 24px;
+    font-weight: 900;
+}
+
+.separador {
+    color: #ffffff66;
+}
+
+.tutorias {
+    font-size: 15px;
+    color: #e0e0e0;
+}
+
+.navbar-usuario-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.nombre-corto {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.avatar-mini {
+    background-color: #134074;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 13px;
+    font-weight: bold;
+    border: 2px solid #ffffff33;
+}
+
+/* --- AREA DE CONTENIDO CENTRAL --- */
+.contenido-panel {
+    flex: 1;
+    padding: 32px;
+    overflow-y: auto;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Permite que la tabla empiece arriba de forma natural */
+}
+
+/* --- TARJETA DE LA TABLA --- */
+.tarjeta-tabla {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    padding: 32px;
+    width: 100%;
+    max-width: 1100px; /* Más ancho para dar espacio a todas las columnas */
+    margin: 0 auto;
+}
+
+.tabla-cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 20px;
+    margin-bottom: 24px;
+    gap: 16px;
+}
+
+.tabla-cabecera h2 {
+    color: #1b1b1b;
+    font-size: 22px;
+}
+
+.subtitulo {
+    color: #666666;
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+/* Botón Nuevo Usuario */
+.btn-nuevo {
+    background-color: #0067b8; /* Azul Microsoft Microsoft */
+    color: #ffffff;
+    text-decoration: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+
+.btn-nuevo:hover {
+    background-color: #005da6;
+}
+
+/* --- DISEÑO DE LA TABLA COMPACTO --- */
+.contenedor-tabla-adaptable {
+    width: 100%;
+    overflow-x: auto; /* Permite scroll horizontal solo a la tabla en pantallas chicas */
+}
+
+.tabla-upds {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+}
+
+.tabla-upds th {
+    background-color: #f8fafc;
+    color: #555555;
+    font-weight: 600;
+    padding: 14px 16px;
+    border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.tabla-upds td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333333;
+    line-height: 1.4;
+}
+
+.tabla-upds tr:hover td {
+    background-color: #fcfdfe; /* Efecto sutil al pasar el mouse por encima */
+}
+
+.col-id {
+    color: #888888;
+    font-weight: 500;
+}
+
+.col-usuario {
+    font-family: monospace;
+    font-size: 13px;
+    color: #555555;
+}
+
+/* --- BADGES (ETIQUETAS) --- */
+.badge-rol, .badge-estado {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Roles */
+.rol-administrador { background-color: #f1f5f9; color: #334155; }
+.rol-docente { background-color: #e0f2fe; color: #0369a1; }
+.rol-estudiante { background-color: #fef3c7; color: #d97706; }
+
+/* Estados */
+.estado-activo { background-color: #e6f4ea; color: #137333; }
+.estado-inactivo { background-color: #fce8e6; color: #b3261e; }
+
+/* --- SECCIÓN ACCIONES --- */
+.col-acciones {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.accion-link {
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.accion-link.editar { color: #0067b8; }
+.accion-link.editar:hover { text-decoration: underline; }
+
+.accion-link.eliminar { color: #b3261e; }
+.accion-link.eliminar:hover { text-decoration: underline; }
+
+.divisor-accion {
+    color: #e0e0e0;
+    margin: 0 4px;
+}
+
+.tabla-vacia {
+    text-align: center;
+    padding: 40px !important;
+    color: #666666;
+    font-size: 15px;
+    background-color: #f8fafc;
+}
+
+/* Ajustes Móviles */
+@media (max-width: 600px) {
+    .tabla-cabecera {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .btn-nuevo {
+        width: 100%;
+        text-align: center;
+    }
+}
