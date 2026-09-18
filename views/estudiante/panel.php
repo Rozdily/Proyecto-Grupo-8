@@ -2,32 +2,38 @@
     // Filtro de seguridad
     require_once __DIR__ . '/../../includes/verificar_sesion.php'; 
     require_once __DIR__ . '/../../config/conexion.php';
+
     // Si el usuario logueado no es estudiante, lo expulsamos al login
     if ($_SESSION['rol'] !== 'estudiante') {
         header('Location: ../login/login.php');
         exit;
     }
-    // Traemos la información académica y de contacto real del estudiante
+
+    // Traemos la información del usuario usando LEFT JOIN para blindar si falla el mapeo del docente
     $id_usuario = $_SESSION['id_usuario'];
     $sql = "SELECT e.registro_universitario, e.semestre, c.nombre_carrera, 
-                u.nombre, u.apellido, u.correo, u.telefono, u.estado
-            FROM estudiantes e
-            JOIN usuarios u ON e.id_usuario = u.id_usuario
-            JOIN carreras c ON e.id_carrera = c.id_carrera
+                   u.nombre, u.apellido, u.correo, u.telefono, u.estado
+            FROM usuarios u
+            LEFT JOIN estudiantes e ON u.id_usuario = e.id_usuario
+            LEFT JOIN carreras c ON e.id_carrera = c.id_carrera
             WHERE u.id_usuario = :id LIMIT 1";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([':id' => $id_usuario]);
     $alumno = $stmt->fetch();
 
-    // Formateamos los datos para la interfaz visual
-    $nombre_completo = $alumno['nombre'] . ' ' . $alumno['apellido'];
-    // Generamos las iniciales automáticamente 
+    
+
+    // Formateamos los datos asegurando que tengan un valor por defecto si vienen vacíos de la BD
+    $nombre_completo = htmlspecialchars(($alumno['nombre'] ?? 'Sin') . ' ' . ($alumno['apellido'] ?? 'Nombre'));
+    
+    // Generamos las iniciales automáticamente
     $iniciales = mb_substr($alumno['nombre'] ?? 'U', 0, 1) . mb_substr($alumno['apellido'] ?? 'P', 0, 1);
 
-    // Convertimos el número de semestre a romano de forma elegante para evitar redundancias
+    // Convertimos el número de semestre a romano de forma elegante
+    $semestre_num = $alumno['semestre'] ?? 1; // Por defecto 1 si viene vacío
     $semestres_romanos = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X'];
-    $nivel_romano = $semestres_romanos[$alumno['semestre']] ?? $alumno['semestre'];
+    $nivel_romano = $semestres_romanos[$semestre_num] ?? $semestre_num;
 ?>
 
 <!DOCTYPE html>
