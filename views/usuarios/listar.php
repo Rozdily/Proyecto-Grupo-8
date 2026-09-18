@@ -1,39 +1,116 @@
-<?php require_once __DIR__ . '/../../includes/verificar_sesion.php'; ?>
+<?php 
+// 1. Filtro de seguridad obligatorio para administradores
+require_once __DIR__ . '/../../includes/verificar_sesion.php'; 
+
+// Si el usuario en sesión no es administrador, lo expulsamos de inmediato
+if ($_SESSION['rol'] !== 'administrador') {
+    header('Location: ../login/login.php');
+    exit;
+}
+
+// Calculamos las iniciales del administrador logueado de forma dinámica
+$iniciales = mb_substr($_SESSION['nombre'] ?? 'A', 0, 1) . mb_substr($_SESSION['apellido'] ?? 'D', 0, 1);
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Usuarios - Sistema de Tutorías</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios - UPDS</title>
+    <!-- Conectamos la nueva hoja de estilos para la lista -->
+    <link rel="stylesheet" href="../assets/css/listar.css">
 </head>
 <body>
-  <h1>Usuarios registrados</h1>
-  <p><a href="usuarios_crear.php">+ Nuevo usuario</a></p>
 
-  <table border="1" cellpadding="6" cellspacing="0">
-    <tr>
-      <th>ID</th><th>Nombre</th><th>Apellido</th><th>Correo</th>
-      <th>Usuario</th><th>Rol</th><th>Estado</th><th>Registro</th><th>Acciones</th>
-    </tr>
-    <?php foreach ($usuarios as $u): ?>
-    <tr>
-      <td><?= htmlspecialchars($u['id_usuario']) ?></td>
-      <td><?= htmlspecialchars($u['nombre']) ?></td>
-      <td><?= htmlspecialchars($u['apellido']) ?></td>
-      <td><?= htmlspecialchars($u['correo']) ?></td>
-      <td><?= htmlspecialchars($u['usuario']) ?></td>
-      <td><?= htmlspecialchars($u['nombre_rol']) ?></td>
-      <td><?= htmlspecialchars($u['estado']) ?></td>
-      <td><?= htmlspecialchars($u['fecha_registro']) ?></td>
-      <td>
-        <a href="usuarios_editar.php?id=<?= $u['id_usuario'] ?>">Editar</a> |
-        <a href="usuarios_eliminar.php?id=<?= $u['id_usuario'] ?>"
-           onclick="return confirm('¿Eliminar este usuario?');">Eliminar</a>
-      </td>
-    </tr>
-    <?php endforeach; ?>
-    <?php if (empty($usuarios)): ?>
-    <tr><td colspan="9">No hay usuarios registrados todavía.</td></tr>
-    <?php endif; ?>
-  </table>
+    <!-- Barra Nav Superior Oficial UPDS -->
+    <header class="navbar-upds">
+        <div class="navbar-marca">
+            <p class="logo-texto">UPDS</p>
+            <p class="separador">|</p>
+            <p class="tutorias">Panel de Administración</p>
+        </div>
+        <div class="navbar-usuario-top">
+            <p class="nombre-corto"><?= htmlspecialchars($_SESSION['nombre'] . ' ' . $_SESSION['apellido']) ?></p>
+            <div class="avatar-mini"><?= htmlspecialchars($iniciales) ?></div>
+        </div>
+    </header>
+
+    <!-- Área de Contenido Central -->
+    <main class="contenido-panel">
+        <div class="tarjeta-tabla">
+            
+            <!-- Encabezado de la Sección con el Botón de Acción -->
+            <div class="tabla-cabecera">
+                <div>
+                    <h2>Usuarios Registrados</h2>
+                    <p class="subtitulo">Gestione las cuentas de estudiantes, docentes y administradores del sistema.</p>
+                </div>
+                <a href="usuarios_crear.php" class="btn-nuevo">+ Nuevo Usuario</a>
+            </div>
+
+            <!-- Contenedor Responsivo para evitar que la tabla rompa en celulares -->
+            <div class="contenedor-tabla-adaptable">
+                <table class="tabla-upds">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre Completo</th>
+                            <th>Correo Electrónico</th>
+                            <th>Usuario</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Fecha Registro</th>
+                            <th style="text-align: center;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($usuarios as $u): ?>
+                        <tr>
+                            <td class="col-id">#<?= htmlspecialchars($u['id_usuario']) ?></td>
+                            <!-- Unificamos nombre y apellido en una celda para mejor legibilidad visual -->
+                            <td class="col-nombre">
+                                <strong><?= htmlspecialchars($u['nombre'] . ' ' . $u['apellido']) ?></strong>
+                            </td>
+                            <td><?= htmlspecialchars($u['correo']) ?></td>
+                            <td class="col-usuario"><?= htmlspecialchars($u['usuario']) ?></td>
+                            <td>
+                                <!-- Etiqueta dinámica de rol -->
+                                <span class="badge-rol rol-<?= strtolower(htmlspecialchars($u['nombre_rol'])) ?>">
+                                    <?= htmlspecialchars(ucfirst($u['nombre_rol'])) ?>
+                                </span>
+                            </td>
+                            <td>
+                                <!-- Etiqueta dinámica de estado -->
+                                <span class="badge-estado estado-<?= strtolower(htmlspecialchars($u['estado'])) ?>">
+                                    <?= htmlspecialchars(ucfirst($u['estado'])) ?>
+                                </span>
+                            </td>
+                            <td class="col-fecha"><?= htmlspecialchars(date('d/m/Y', strtotime($u['fecha_registro']))) ?></td>
+                            <td class="col-acciones">
+                                <a href="usuarios_editar.php?id=<?= $u['id_usuario'] ?>" class="accion-link editar">Editar</a>
+                                <span class="divisor-accion">|</span>
+                                <a href="usuarios_eliminar.php?id=<?= $u['id_usuario'] ?>" 
+                                   class="accion-link eliminar"
+                                   onclick="return confirm('¿Está seguro de que desea eliminar permanentemente a este usuario?');">
+                                   Eliminar
+                                </a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                        
+                        <!-- Verificación corregida: se cierra la celda y la fila perfectamente -->
+                        <?php if (empty($usuarios)): ?>
+                        <tr>
+                            <td colspan="8" class="tabla-vacia">
+                                📂 No hay usuarios registrados todavía en el sistema.
+                            </td>
+                        </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </main>
 </body>
 </html>
