@@ -1,8 +1,8 @@
 <?php
 $host = getenv('DB_HOST') ?: 'localhost';
 $db   = getenv('DB_NAME') ?: 'tutorias_db';
-$user = getenv('DB_USER') ?: 'tutorias_user';
-$pass = getenv('DB_PASS') ?: '12345';
+$user = getenv('DB_USER') ?: 'administrador';
+$pass = getenv('DB_PASS') ?: 'grupo8';
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
