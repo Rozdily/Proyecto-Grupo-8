@@ -46,7 +46,7 @@ if ($usuario && $usuario['estado'] === 'activo' && password_verify($contrasenaIn
         $pdo->prepare("INSERT INTO registro_accesos (id_usuario, ip_origen, resultado) VALUES (?, ?, 'fallido')")
             ->execute([$usuario['id_usuario'], $_SERVER['REMOTE_ADDR']]);
     }
-    $_SESSION['login_error'] = 'Usuario o contraseña incorrectos, o cuenta inactiva.';
+    $_SESSION['login_error'] = 'El usuario o la constraseña son erroneos.';
     header('Location: ../views/login/login.php');
     exit;
 }
