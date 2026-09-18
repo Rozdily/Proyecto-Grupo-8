@@ -45,7 +45,6 @@ $iniciales = mb_substr($_SESSION['nombre'] ?? 'A', 0, 1) . mb_substr($_SESSION['
                 <p class="subtitulo">Modifique los permisos, datos personales o estado de la cuenta seleccionada.</p>
             </div>
 
-            <!-- 🚨 CAJA DE ALERTA DE ERRORES DINÁMICA DE PHP -->
             <?php if (!empty($errores)): ?>
                 <?php foreach ($errores as $e): ?>
                     <div class="alerta-error" style="margin-bottom: 10px;">
