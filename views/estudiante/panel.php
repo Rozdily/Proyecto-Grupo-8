@@ -1,34 +1,33 @@
 <?php 
-// Filtro de seguridad
-require_once __DIR__ . '/../../includes/verificar_sesion.php'; 
-require_once __DIR__ . '/../../config/conexion.php';
-// Si el usuario logueado no es estudiante, lo expulsamos al login
-if ($_SESSION['rol'] !== 'estudiante') {
-    header('Location: ../login/login.php');
-    exit;
-}
-// Traemos la información académica y de contacto real del estudiante
-$id_usuario = $_SESSION['id_usuario'];
-$sql = "SELECT e.registro_universitario, e.semestre, c.nombre_carrera, 
-               u.nombre, u.apellido, u.correo, u.telefono, u.estado
-        FROM estudiantes e
-        JOIN usuarios u ON e.id_usuario = u.id_usuario
-        JOIN carreras c ON e.id_carrera = c.id_carrera
-        WHERE u.id_usuario = :id LIMIT 1";
+    // Filtro de seguridad
+    require_once __DIR__ . '/../../includes/verificar_sesion.php'; 
+    require_once __DIR__ . '/../../config/conexion.php';
+    // Si el usuario logueado no es estudiante, lo expulsamos al login
+    if ($_SESSION['rol'] !== 'estudiante') {
+        header('Location: ../login/login.php');
+        exit;
+    }
+    // Traemos la información académica y de contacto real del estudiante
+    $id_usuario = $_SESSION['id_usuario'];
+    $sql = "SELECT e.registro_universitario, e.semestre, c.nombre_carrera, 
+                u.nombre, u.apellido, u.correo, u.telefono, u.estado
+            FROM estudiantes e
+            JOIN usuarios u ON e.id_usuario = u.id_usuario
+            JOIN carreras c ON e.id_carrera = c.id_carrera
+            WHERE u.id_usuario = :id LIMIT 1";
 
-$stmt = $pdo->prepare($sql);
-$stmt->execute([':id' => $id_usuario]);
-$alumno = $stmt->fetch();
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':id' => $id_usuario]);
+    $alumno = $stmt->fetch();
 
-// 3. Formateamos los datos para la interfaz visual
-$nombre_completo = $alumno['nombre'] . ' ' . $alumno['apellido'];
+    // Formateamos los datos para la interfaz visual
+    $nombre_completo = $alumno['nombre'] . ' ' . $alumno['apellido'];
+    // Generamos las iniciales automáticamente 
+    $iniciales = mb_substr($alumno['nombre'] ?? 'U', 0, 1) . mb_substr($alumno['apellido'] ?? 'P', 0, 1);
 
-// Generamos las iniciales automáticamente (ej: "Maria Estudiante" -> "ME")
-$iniciales = mb_substr($alumno['nombre'] ?? 'U', 0, 1) . mb_substr($alumno['apellido'] ?? 'P', 0, 1);
-
-// Convertimos el número de semestre a romano de forma elegante para evitar redundancias
-$semestres_romanos = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X'];
-$nivel_romano = $semestres_romanos[$alumno['semestre']] ?? $alumno['semestre'];
+    // Convertimos el número de semestre a romano de forma elegante para evitar redundancias
+    $semestres_romanos = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X'];
+    $nivel_romano = $semestres_romanos[$alumno['semestre']] ?? $alumno['semestre'];
 ?>
 
 <!DOCTYPE html>
@@ -45,7 +44,7 @@ $nivel_romano = $semestres_romanos[$alumno['semestre']] ?? $alumno['semestre'];
         <div class="navbar-marca">
             <p class="logo-texto">UPDS</p>
             <p class="separador">|</p>
-            <p class="tutorias">Tutorias</p>
+            <p class="tutorias">Tutorias Estudiantes</p>
         </div>
         <div class="navbar-usuario-top">
             <p class="nombre-corto"><?= htmlspecialchars($nombre_completo) ?></p>
