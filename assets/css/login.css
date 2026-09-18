@@ -1,0 +1,90 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+}
+
+body {
+    /* Nueva configuración con la imagen de fondo oficial de la UPDS */
+    background-image: url('https://aadcdn.msftauthimages.net/dbd5a2dd-j544gcpowfd-mh4-x2rlrt99ozyb5y02fat3bb3nue/logintenantbranding/0/illustration?ts=637861602345472860');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.bloque-central {
+    width: 100%;
+    max-width: 440px;
+    padding: 20px;
+}
+
+.contenedor-login {
+    background-color: #ffffff;
+    padding: 40px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.logo-upds {
+    color: #004481;
+    font-size: 28px;
+    margin-bottom: 15px;
+}
+
+.titulo {
+    font-size: 24px;
+    color: #1b1b1b;
+    margin-bottom: 25px;
+}
+
+.campo-entrada {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #666666;
+    padding: 8px 0;
+    font-size: 15px;
+    outline: none;
+    margin-bottom: 20px;
+}
+
+.campo-entrada:focus {
+    border-bottom: 2px solid #0067b8;
+}
+
+.enlace-ayuda:hover {
+    text-decoration: underline;
+}
+
+.seccion-botones {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-siguiente {
+    background-color: #0067b8;
+    color: #ffffff;
+    border: none;
+    padding: 8px 35px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.btn-siguiente:hover {
+    background-color: #015798;
+}
+
+.pie-institucional {
+    border-top: 1px solid #e5e5e5;
+    padding-top: 20px;
+    margin-top: 25px;
+    font-size: 14px;
+    font-weight: bold;
+}
+.mensaje-error{
+    color:#e81123;
+}
+
