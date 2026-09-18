@@ -36,7 +36,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tutorias - UPDS</title>
-    <link rel="stylesheet" href="../../assets/css/estudiante.css">
+    <link rel="stylesheet" href="../../assets/css/panel.css">
 </head>
 <body>
     <!-- Barra Nav Superior -->
