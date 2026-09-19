@@ -14,8 +14,8 @@ $id_usuario = $_SESSION['id_usuario'];
 // traemos los Datos del usuario, su especialidad y biografía de tutor
 $sql_tutor = "SELECT t.id_tutor, t.especialidad, t.biografia, 
                      u.nombre, u.apellido, u.correo, u.telefono, u.estado
-              FROM tutores t
-              JOIN usuarios u ON t.id_usuario = u.id_usuario
+              FROM usuarios u
+              LEFT JOIN tutores t ON u.id_usuario = t.id_usuario
               WHERE u.id_usuario = :id LIMIT 1";
 
 $stmt_tutor = $pdo->prepare($sql_tutor);
@@ -94,7 +94,7 @@ $stmt_horarios->execute([':id_tutor' => $tutor['id_tutor']]);
                     <div class="avatar-grande"><?= htmlspecialchars($iniciales) ?></div>
                     <div class="perfil-titulos">
                         <h2><?= htmlspecialchars($nombre_completo) ?></h2>
-                        <p class="subtitulo-carrera"><?= htmlspecialchars($tutor['especialidad'] ?: 'Especialidad no asignada') ?></p>
+                        <p class="subtitulo-carrera"><?= htmlspecialchars($tutor['especialidad'] ?: 'Sin especialidad') ?></p>
                         
                         <!-- 🚦 Filtro inteligente de estado laboral del docente -->
                         <?php if ($tutor['estado'] === 'activo'): ?>
@@ -140,10 +140,9 @@ $stmt_horarios->execute([':id_tutor' => $tutor['id_tutor']]);
                         </div>
                         <div class="fila-dato">
                             <p class="clave">Teléfono:</p>
-                            <p class="valor"><?= htmlspecialchars($tutor['telefono'] ?: 'No registrado') ?></p>
+                            <p class="valor"><?= htmlspecialchars($tutor['telefono']) ?></p>
                         </div>
                     </div>
-
                     <!-- Bloque de Biografía -->
                     <div class="cuadro-datos">
                         <h3>Biografía Profesional</h3>
