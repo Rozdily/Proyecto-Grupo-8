@@ -66,17 +66,14 @@ $stmt_horarios->execute([':id_tutor' => $tutor['id_tutor']]);
         <!-- Menú Lateral -->
         <aside class="sidebar-upds">
             <nav class="menu-enlaces">
-                <a href="#" class="enlace-menu activo">
+                <a href="panel.php" class="enlace-menu activo">
                     <i>Mi Perfil</i>
                 </a>
-                <a href="#" class="enlace-menu">
+                <a href="solicitudes_tutor.php" class="enlace-menu">
                     <i>Ver Solicitudes</i> 
                 </a>
-                <a href="#" class="enlace-menu">
+                <a href="tutorias_asignadas.php" class="enlace-menu">
                     <i>Tutorias Asignadas</i> 
-                </a>
-                <a href="#" class="enlace-menu">
-                    <i>Mis Horarios</i> 
                 </a>
             </nav>
             <div class="sidebar-pie">

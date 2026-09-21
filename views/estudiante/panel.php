@@ -63,16 +63,19 @@
         <!-- Menú Lateral -->
         <aside class="sidebar-upds">
             <nav class="menu-enlaces">
-                <a href="#" class="enlace-menu activo">
+                <a href="panel.php" class="enlace-menu activo">
                     <i>Mi Perfil</i>
                 </a>
-                <a href="#" class="enlace-menu">
+                <a href="mis_tutorias.php" class="enlace-menu">
+                    <i>Mis Tutorias</i> 
+                </a>
+                <a href="solicitudes_pendientes.php" class="enlace-menu">
                     <i>Solicitudes Pendientes</i> 
                 </a>
-                <a href="#" class="enlace-menu">
+                <a href="tutorias_disponibles.php" class="enlace-menu">
                     <i>Tutorias Disponibles</i> 
                 </a>
-                <a href="#" class="enlace-menu">
+                <a href="solicitar_tutoria.php" class="enlace-menu">
                     <i>Solicitar Tutorias</i>
                 </a>
             </nav>
