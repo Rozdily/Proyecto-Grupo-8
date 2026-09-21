@@ -1,0 +1,125 @@
+/* ==========================================================================
+   Estilos del Formulario de Solicitudes - Identidad Institucional UPDS
+   ========================================================================== */
+
+.tarjeta-formulario {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    max-width: 600px;
+    margin: 40px auto;
+}
+
+.formulario-titulo {
+    color: #002d62; /* Azul Oficial UPDS */
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+    font-weight: bold;
+    text-align: left;
+}
+
+.formulario-subtitulo {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 25px;
+    text-align: left;
+}
+
+.campo-grupo {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.campo-grupo label {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #444;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    text-align: left;
+}
+
+.input-upds {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    background-color: #fff;
+    color: #333;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-upds:focus {
+    border-color: #002d62;
+    box-shadow: 0 0 5px rgba(0, 45, 98, 0.2);
+    outline: none;
+}
+
+textarea.input-upds {
+    resize: vertical;
+    font-family: inherit;
+    line-height: 1.5;
+}
+
+.fila-doble {
+    display: flex;
+    gap: 20px;
+}
+
+.fila-doble .campo-grupo {
+    flex: 1;
+}
+
+.area-botones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.btn-enviar {
+    background-color: #002d62;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background-color 0.2s;
+}
+
+.btn-enviar:hover {
+    background-color: #001f44;
+}
+
+.btn-cancelar {
+    background-color: #f4f4f4;
+    color: #333;
+    border: 1px solid #ccc;
+    padding: 12px 25px;
+    border-radius: 6px;
+    font-weight: bold;
+    text-decoration: none;
+    font-size: 0.95rem;
+    text-align: center;
+    transition: background-color 0.2s;
+}
+
+.btn-cancelar:hover {
+    background-color: #eaeaea;
+}
+
+/* Ajuste responsivo para pantallas móviles pequeñas */
+@media (max-width: 480px) {
+    .fila-doble {
+        flex-direction: column;
+        gap: 0;
+    }
+    .tarjeta-formulario {
+        padding: 20px;
+        margin: 15px;
+    }
+}

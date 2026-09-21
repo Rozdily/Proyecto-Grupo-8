@@ -1,0 +1,171 @@
+/* --- ESTILOS DE TUTORÍAS DISPONIBLES (UPDS STYLE) --- */
+.contenido-panel {
+    flex: 1;
+    padding: 30px;
+    background-color: #f4f6f9;
+    overflow-y: auto;
+}
+
+.seccion-titulo-upds {
+    margin-bottom: 25px;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 12px;
+}
+
+.seccion-titulo-upds h2 {
+    color: #1b1b1b;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.seccion-titulo-upds p {
+    color: #666666;
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+.alerta-exito-upds {
+    background-color: #e6f4ea;
+    border: 1px solid #b7e1cd;
+    color: #137333;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+/* Grilla Adaptativa */
+.grid-disponibles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    width: 100%;
+}
+
+/* Tarjetas */
+.tarjeta-disponible-card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.tarjeta-disponible-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Encabezado Azul Oficial */
+.card-materia-header {
+    background-color: #004481;
+    color: #ffffff;
+    padding: 16px;
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.badge-disponible {
+    background-color: #e6f4ea;
+    color: #137333;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+/* Cuerpo */
+.card-contenido-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+}
+
+.card-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 14px;
+}
+
+.card-info-item .label-upds {
+    color: #707070;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card-info-item .value-upds {
+    color: #1b1b1b;
+    font-weight: 600;
+}
+
+.card-info-item .fecha-resaltada {
+    color: #004481;
+    font-weight: 700;
+}
+
+.motivo-bloque {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 13px;
+    color: #555555;
+    line-height: 1.4;
+    max-height: 85px;
+    overflow-y: auto;
+    word-break: break-word;
+}
+
+/* Footer y Botón */
+.card-formulario-footer {
+    border-top: 1px solid #f0f0f0;
+    padding: 16px 20px;
+    background-color: #fcfcfc;
+}
+
+.btn-unirse-upds {
+    background-color: #0067b8;
+    color: #ffffff;
+    border: none;
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.2s;
+}
+
+.btn-unirse-upds:hover {
+    background-color: #005da6;
+}
+
+.bandeja-vacia-upds {
+    background-color: #ffffff;
+    border: 1px dashed #ababab;
+    border-radius: 8px;
+    padding: 40px;
+    text-align: center;
+    color: #666666;
+    font-size: 15px;
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 480px) {
+    .grid-disponibles {
+        grid-template-columns: 1fr;
+    }
+}

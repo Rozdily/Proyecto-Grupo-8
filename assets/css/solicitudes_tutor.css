@@ -1,0 +1,188 @@
+/* --- ESTILOS EXCLUSIVOS INSTITUCIONALES UPDS --- */
+.contenido-panel {
+    flex: 1;
+    padding: 30px;
+    background-color: #f4f6f9;
+    overflow-y: auto;
+}
+
+/* Encabezado del Módulo */
+.seccion-titulo-upds {
+    margin-bottom: 25px;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 12px;
+}
+
+.seccion-titulo-upds h2 {
+    color: #1b1b1b;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.seccion-titulo-upds p {
+    color: #666666;
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+/* Caja de alerta verde de éxito */
+.alerta-exito-upds {
+    background-color: #e6f4ea; 
+    color: #137333; 
+    padding: 12px; 
+    border-radius: 6px; 
+    margin-bottom: 20px; 
+    font-weight: 500;
+    font-size: 14px;
+    border: 1px solid #b7e1cd;
+}
+
+/* Contenedor de la cuadrícula adaptativa */
+.grid-solicitudes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    width: 100%;
+}
+
+/* Tarjeta de Solicitud Individual */
+.tarjeta-solicitud-card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.tarjeta-solicitud-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Encabezado de la Materia (Azul UPDS) */
+.card-materia-header {
+    background-color: #004481; 
+    color: #ffffff;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+/* Cuerpo interno de la Tarjeta */
+.card-contenido-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1;
+}
+
+.card-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 14px;
+}
+
+.card-info-item .label-upds {
+    color: #707070;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card-info-item .value-upds {
+    color: #1b1b1b;
+    font-weight: 600;
+}
+
+.card-info-item .fecha-resaltada {
+    color: #004481;
+    font-weight: 700;
+}
+
+/* Bloque del Motivo del Estudiante */
+.card-info-item .motivo-bloque {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 13.5px;
+    color: #444444;
+    line-height: 1.4;
+    max-height: 95px;
+    overflow-y: auto;
+    word-break: break-word;
+}
+
+/* Pie del Formulario de Aceptación */
+.card-formulario-footer {
+    border-top: 1px solid #f0f0f0;
+    padding: 16px 20px;
+    background-color: #fcfcfc;
+}
+
+/* Input con línea inferior de Microsoft */
+.input-reunion-upds {
+    width: 100%;
+    border: none;
+    border-bottom: 2px solid #666666;
+    padding: 8px 4px;
+    font-size: 14px;
+    outline: none;
+    background: transparent;
+    margin-bottom: 12px;
+    color: #1b1b1b;
+    transition: border-bottom-color 0.2s;
+}
+
+.input-reunion-upds:focus {
+    border-bottom: 2px solid #0067b8; 
+}
+
+/* Botón de envío azul */
+.btn-aceptar-upds {
+    background-color: #0067b8;
+    color: #ffffff;
+    border: none;
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.2s;
+}
+
+.btn-aceptar-upds:hover {
+    background-color: #005da6;
+}
+
+/* Estado de bandeja vacía */
+.bandeja-vacia-upds {
+    background-color: #ffffff;
+    border: 1px dashed #ababab;
+    border-radius: 8px;
+    padding: 40px;
+    text-align: center;
+    color: #666666;
+    font-size: 15px;
+    grid-column: 1 / -1;
+}
+
+/* Ajuste Responsivo para tabletas y celulares */
+@media (max-width: 480px) {
+    .grid-solicitudes {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Estilo complementario para los datos destacados de la agenda */
+.value-upds {
+    word-break: break-word; /* Evita que enlaces de Teams extremadamente largos deformen la tarjeta */
+}
