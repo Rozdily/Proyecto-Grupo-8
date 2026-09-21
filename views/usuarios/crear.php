@@ -1,6 +1,9 @@
 <?php 
-// 1. Filtro de seguridad obligatorio para administradores
+// Filtro de seguridad obligatorio para administradores
 require_once __DIR__ . '/../../includes/verificar_sesion.php'; 
+//Conexion a la base de datos
+$query_carreras = $pdo->query("SELECT id_carrera, nombre_carrera FROM carreras ORDER BY nombre_carrera ASC");
+$carreras = $query_carreras->fetchAll(PDO::FETCH_ASSOC);
 
 // Si el usuario en sesión no es administrador, lo expulsamos de inmediato
 if ($_SESSION['rol'] !== 'administrador') {
@@ -51,7 +54,6 @@ $iniciales = mb_substr($_SESSION['nombre'] ?? 'A', 0, 1) . mb_substr($_SESSION['
             <?php endif; ?>
             <!-- Formulario de Registro Estilo UPDS integrado con el Backend -->
             <form method="POST" class="formulario-upds">
-                
                 <div class="grupo-campo">
                     <label class="etiqueta-formulario">Rol del Usuario</label>
                     <select name="id_rol" class="campo-seleccion" required>
@@ -75,12 +77,28 @@ $iniciales = mb_substr($_SESSION['nombre'] ?? 'A', 0, 1) . mb_substr($_SESSION['
                         <input type="text" name="apellido" class="campo-entrada" placeholder="Ej. Pérez" value="<?= htmlspecialchars($_POST['apellido'] ?? '') ?>" required>
                     </div>
                 </div>
-
+                <div class="grupo-fila">
+                  <div class="grupo-campo">
+                    <label class="etiqueta-formulario">Teléfono</label>
+                    <input type="text" name="telefono" class="campo-entrada" placeholder="Ej. 72140503" value="<?= htmlspecialchars($_POST['telefono'] ?? '') ?>" required>
+                  </div>
+                  <div class="grupo-campo">
+                    <label class="etiqueta-formulario">Carrera</label>
+                    <select name="id_carrera" class="campo-seleccion" required>
+                      <option value="" disabled selected>Seleccione una carrera...</option>
+                      <?php foreach ($carreras as $c): ?>
+                          <option value="<?= $c['id_carrera'] ?>" <?= isset($_POST['id_carrera']) && $_POST['id_carrera'] == $c['id_carrera'] ? 'selected' : '' ?>>
+                              <?= htmlspecialchars(ucfirst($c['nombre_carrera'])) ?>
+                          </option>
+                      <?php endforeach; ?>
+                    </select>
+                  </div>
+                </div>
                 <div class="grupo-campo">
                     <label class="etiqueta-formulario">Correo Electrónico</label>
                     <input type="email" name="correo" class="campo-entrada" placeholder="juan.perez@upds.net" value="<?= htmlspecialchars($_POST['correo'] ?? '') ?>" required>
                 </div>
-
+                
                 <div class="grupo-fila">
                     <div class="grupo-campo">
                         <label class="etiqueta-formulario">Nombre de Usuario</label>
