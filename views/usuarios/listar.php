@@ -17,7 +17,6 @@ $iniciales = mb_substr($_SESSION['nombre'] ?? 'A', 0, 1) . mb_substr($_SESSION['
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Usuarios - UPDS</title>
-    <!-- Conectamos la nueva hoja de estilos para la lista -->
     <link rel="stylesheet" href="../assets/css/listar.css">
 </head>
 <body>
@@ -67,20 +66,17 @@ $iniciales = mb_substr($_SESSION['nombre'] ?? 'A', 0, 1) . mb_substr($_SESSION['
                         <?php foreach ($usuarios as $u): ?>
                         <tr>
                             <td class="col-id">#<?= htmlspecialchars($u['id_usuario']) ?></td>
-                            <!-- Unificamos nombre y apellido en una celda para mejor legibilidad visual -->
                             <td class="col-nombre">
                                 <strong><?= htmlspecialchars($u['nombre'] . ' ' . $u['apellido']) ?></strong>
                             </td>
                             <td><?= htmlspecialchars($u['correo']) ?></td>
                             <td class="col-usuario"><?= htmlspecialchars($u['usuario']) ?></td>
                             <td>
-                                <!-- Etiqueta dinámica de rol -->
                                 <span class="badge-rol rol-<?= strtolower(htmlspecialchars($u['nombre_rol'])) ?>">
                                     <?= htmlspecialchars(ucfirst($u['nombre_rol'])) ?>
                                 </span>
                             </td>
                             <td>
-                                <!-- Etiqueta dinámica de estado -->
                                 <span class="badge-estado estado-<?= strtolower(htmlspecialchars($u['estado'])) ?>">
                                     <?= htmlspecialchars(ucfirst($u['estado'])) ?>
                                 </span>
@@ -97,8 +93,6 @@ $iniciales = mb_substr($_SESSION['nombre'] ?? 'A', 0, 1) . mb_substr($_SESSION['
                             </td>
                         </tr>
                         <?php endforeach; ?>
-                        
-                        <!-- Verificación corregida: se cierra la celda y la fila perfectamente -->
                         <?php if (empty($usuarios)): ?>
                         <tr>
                             <td colspan="8" class="tabla-vacia">
@@ -112,5 +106,10 @@ $iniciales = mb_substr($_SESSION['nombre'] ?? 'A', 0, 1) . mb_substr($_SESSION['
 
         </div>
     </main>
+    <!-- BOTÓN CERRAR SESIÓN -->
+    <a href="../login/login.php" class="btn-salir-flotante">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        <p>Cerrar Sesión</p>
+    </a>
 </body>
 </html>
