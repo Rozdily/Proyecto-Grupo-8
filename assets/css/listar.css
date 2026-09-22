@@ -225,6 +225,64 @@ body {
     background-color: #f8fafc;
 }
 
+/* --- BOTÓN SALIR FLOTANTE MEJORADO --- */
+.btn-salir-flotante {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    background-color: #ffffff;
+    color: #495057;
+    text-decoration: none;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 50px; /* Bordes completamente redondeados (estilo píldora) */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Sombra suave y moderna */
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Espacio perfecto entre el icono y el texto */
+    border: 1px solid #e9ecef;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    z-index: 100; /* Asegura que quede por encima de las tablas */
+}
+
+/* Icono dentro del botón */
+.btn-salir-flotante i {
+    font-size: 16px;
+    color: #6c757d;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+/* --- EFECTOS HOVER (Al pasar el mouse) --- */
+.btn-salir-flotante:hover {
+    background-color: #dc3545; /* Rojo elegante de salida */
+    color: #ffffff;
+    border-color: #dc3545;
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3); /* Brillo sutil rojo */
+    transform: translateY(-3px); /* Pequeño brinco hacia arriba */
+}
+
+.btn-salir-flotante:hover i {
+    color: #ffffff;
+    transform: translateX(-4px); /* El icono se mueve ligeramente a la izquierda simulando "salir" */
+}
+
+/* --- EFECTO ACTIVE (Al hacer clic) --- */
+.btn-salir-flotante:active {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(220, 53, 69, 0.2);
+}
+
+/* --- AJUSTE RESPONSIVO PARA PANTALLAS CHICAS --- */
+@media (max-width: 600px) {
+    .btn-salir-flotante {
+        bottom: 16px;
+        left: 16px;
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+}
+
 /* Ajustes Móviles */
 @media (max-width: 600px) {
     .tabla-cabecera {
