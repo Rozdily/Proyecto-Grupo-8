@@ -210,6 +210,30 @@ body {
     background-color: #005da6;
 }
 
+.dinamico-oculto {
+    display: none !important;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.dinamico-visible {
+    display: flex !important; /* Mantiene el comportamiento de flexbox en las filas */
+    opacity: 1;
+}
+.dinamico-visible-bloque {
+    display: block !important; /* Mantiene el bloque completo para la biografía */
+    opacity: 1;
+}
+.textarea-biografia {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 100px;
+    margin-top: 6px;
+}
+
 /* Celulares */
 @media (max-width: 600px) {
     .grupo-fila {
