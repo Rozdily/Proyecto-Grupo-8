@@ -1,4 +1,6 @@
-/* Reset General */
+/* ==========================================================================
+   RESET GENERAL Y VARIABLES
+   ========================================================================== */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -14,7 +16,9 @@ body {
     overflow: hidden;
 }
 
-/* --- NAVBAR SUPERIOR --- */
+/* ==========================================================================
+   NAVBAR SUPERIOR (ESTILO UPDS)
+   ========================================================================== */
 .navbar-upds {
     background-color: #004481; /* Azul UPDS */
     color: #ffffff;
@@ -71,7 +75,9 @@ body {
     border: 2px solid #ffffff33;
 }
 
-/* --- ESTRUCTURA DEL PANEL --- */
+/* ==========================================================================
+   ESTRUCTURA DEL PANEL Y CONTENEDORES
+   ========================================================================== */
 .contenedor-portal {
     display: flex;
     flex: 1;
@@ -127,7 +133,9 @@ body {
     font-weight: 500;
 }
 
-/* --- CAMPOS DEL FORMULARIO --- */
+/* ==========================================================================
+   CAMPOS DEL FORMULARIO Y FILAS
+   ========================================================================== */
 .formulario-upds {
     display: flex;
     flex-direction: column;
@@ -152,7 +160,7 @@ body {
     color: #555555;
 }
 
-/* Estilo Inputs de Microsoft / UPDS */
+/* Estilo Inputs Minimalistas de Microsoft / UPDS */
 .campo-entrada, .campo-seleccion {
     width: 100%;
     border: none;
@@ -173,7 +181,29 @@ body {
     cursor: pointer;
 }
 
-/* --- SECCIÓN BOTONES --- */
+/* Estilo Textarea Minimalista para la Biografía */
+.textarea-biografia {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #666666;
+    padding: 8px 4px;
+    font-size: 15px;
+    outline: none;
+    background-color: transparent;
+    color: #1b1b1b;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+    transition: border-bottom-color 0.2s;
+}
+
+.textarea-biografia:focus {
+    border-bottom: 2px solid #0067b8;
+}
+
+/* ==========================================================================
+   SECCIÓN BOTONES
+   ========================================================================== */
 .seccion-botones {
     display: flex;
     justify-content: flex-end;
@@ -210,31 +240,31 @@ body {
     background-color: #005da6;
 }
 
-.dinamico-oculto {
+/* ==========================================================================
+   CORRECCIÓN DE VISIBILIDAD DINÁMICA (JS COMPATIBLE)
+   ========================================================================== */
+.grupo-fila.dinamico-oculto, 
+.grupo-campo.dinamico-oculto {
     display: none !important;
     opacity: 0;
-    transition: opacity 0.3s ease;
-}
-.dinamico-visible {
-    display: flex !important; /* Mantiene el comportamiento de flexbox en las filas */
-    opacity: 1;
-}
-.dinamico-visible-bloque {
-    display: block !important; /* Mantiene el bloque completo para la biografía */
-    opacity: 1;
-}
-.textarea-biografia {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-family: inherit;
-    resize: vertical;
-    min-height: 100px;
-    margin-top: 6px;
 }
 
-/* Celulares */
+.grupo-fila.dinamico-visible {
+    display: flex !important;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.grupo-campo.dinamico-visible-bloque {
+    display: flex !important;
+    flex-direction: column;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (CELULARES)
+   ========================================================================== */
 @media (max-width: 600px) {
     .grupo-fila {
         flex-direction: column;

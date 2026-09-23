@@ -21,33 +21,8 @@ $iniciales = mb_substr($_SESSION['nombre'] ?? 'A', 0, 1) . mb_substr($_SESSION['
     <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
     <title>Administración - UPDS</title> 
+    <!-- Tu archivo CSS oficial ya actualizado -->
     <link rel="stylesheet" href="../assets/css/registro.css">
-    <style>
-        /* Estilos necesarios para el comportamiento de ocultado/mostrado */
-        .dinamico-oculto {
-            display: none !important;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .dinamico-visible {
-            display: flex !important; /* Mantiene el comportamiento de flexbox en las filas */
-            opacity: 1;
-        }
-        .dinamico-visible-bloque {
-            display: block !important; /* Mantiene el bloque completo para la biografía */
-            opacity: 1;
-        }
-        .textarea-biografia {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-family: inherit;
-            resize: vertical;
-            min-height: 100px;
-            margin-top: 6px;
-        }
-    </style>
 </head>
 <body> 
 
@@ -75,7 +50,7 @@ $iniciales = mb_substr($_SESSION['nombre'] ?? 'A', 0, 1) . mb_substr($_SESSION['
 
             <?php if (!empty($errores)): ?> 
                 <?php foreach ($errores as $e): ?> 
-                    <div class="alerta-error" style="margin-bottom: 10px;"> 
+                    <div class="alerta-error"> 
                         <p>⚠️ <?= htmlspecialchars($e) ?></p> 
                     </div> 
                 <?php endforeach; ?> 
@@ -90,7 +65,6 @@ $iniciales = mb_substr($_SESSION['nombre'] ?? 'A', 0, 1) . mb_substr($_SESSION['
                     <select name="id_rol" id="selectorRol" class="campo-seleccion" required> 
                         <option value="" disabled selected>Seleccione un rol...</option> 
                         <?php foreach ($roles as $r): ?> 
-                            <?php if ((int)$r['id_rol'] === 1) continue; ?> 
                             <option value="<?= $r['id_rol'] ?>" 
                                     data-rol="<?= strtolower(htmlspecialchars($r['nombre_rol'])) ?>"
                                     <?= isset($_POST['id_rol']) && $_POST['id_rol'] == $r['id_rol'] ? 'selected' : '' ?>> 
@@ -100,7 +74,7 @@ $iniciales = mb_substr($_SESSION['nombre'] ?? 'A', 0, 1) . mb_substr($_SESSION['
                     </select> 
                 </div> 
 
-                <!-- FILA 1: Nombres y Apellidos -->
+                <!-- Nombres y Apellidos -->
                 <div class="grupo-fila"> 
                     <div class="grupo-campo"> 
                         <label class="etiqueta-formulario">Nombre</label> 
@@ -112,13 +86,11 @@ $iniciales = mb_substr($_SESSION['nombre'] ?? 'A', 0, 1) . mb_substr($_SESSION['
                     </div> 
                 </div> 
 
-                <!-- FILA INTERACTIVA ESTUDIANTE: Teléfono y Carrera lado a lado -->
-                <!-- Por defecto se oculta toda la fila usando la clase dinámica -->
+                <!-- FILA INTERACTIVA ESTUDIANTE: Teléfono y Carrera lado a lado (Oculta al cargar) -->
                 <div class="grupo-fila dinamico-oculto" id="bloqueCarrera"> 
                     <div class="grupo-campo"> 
                         <label class="etiqueta-formulario">Teléfono</label> 
-                        <!-- Quitamos el required nativo aquí y dejamos que el JS lo maneje para no bloquear otros roles -->
-                        <input type="text" name="telefono" id="inputTelefono" class="campo-entrada" placeholder="Ej. 72140503" value="<?= htmlspecialchars($_POST['telefono'] ?? '') ?>"> 
+                        <input type="text" name="telefono_inactivo" id="inputTelefono" class="campo-entrada" placeholder="Ej. 72140503" value="<?= htmlspecialchars($_POST['telefono'] ?? '') ?>"> 
                     </div> 
                     <div class="grupo-campo"> 
                         <label class="etiqueta-formulario">Carrera</label> 
@@ -132,10 +104,11 @@ $iniciales = mb_substr($_SESSION['nombre'] ?? 'A', 0, 1) . mb_substr($_SESSION['
                         </select> 
                     </div> 
                 </div> 
-                <!-- FILA DE RESPALDO: Teléfono normal si NO es estudiante (Ocupa todo el ancho) -->
-                <div class="grupo-campo" id="bloqueTelefonoGeneral"> 
+
+                <!-- FILA RESPALDO: Teléfono normal si NO es estudiante (Oculta al cargar) -->
+                <div class="grupo-campo dinamico-oculto" id="bloqueTelefonoGeneral"> 
                     <label class="etiqueta-formulario">Teléfono</label> 
-                    <input type="text" name="telefono_general" id="inputTelefonoGeneral" class="campo-entrada" placeholder="Ej. 72140503" value="<?= htmlspecialchars($_POST['telefono'] ?? '') ?>" required> 
+                    <input type="text" name="telefono" id="inputTelefonoGeneral" class="campo-entrada" placeholder="Ej. 72140503" value="<?= htmlspecialchars($_POST['telefono'] ?? '') ?>"> 
                 </div>
 
                 <!-- Correo Electrónico -->
@@ -144,7 +117,7 @@ $iniciales = mb_substr($_SESSION['nombre'] ?? 'A', 0, 1) . mb_substr($_SESSION['
                     <input type="email" name="correo" class="campo-entrada" placeholder="juan.perez@upds.net" value="<?= htmlspecialchars($_POST['correo'] ?? '') ?>" required> 
                 </div> 
 
-                <!-- FILA: Usuario y Contraseña -->
+                <!-- Usuario y Contraseña -->
                 <div class="grupo-fila"> 
                     <div class="grupo-campo"> 
                         <label class="etiqueta-formulario">Nombre de Usuario</label> 
@@ -156,7 +129,7 @@ $iniciales = mb_substr($_SESSION['nombre'] ?? 'A', 0, 1) . mb_substr($_SESSION['
                     </div> 
                 </div> 
 
-                <!-- BLOQUE DINÁMICO TUTOR: Biografía abarcando todo el ancho abajo -->
+                <!-- BLOQUE DINÁMICO TUTOR: Biografía (Oculta al cargar) -->
                 <div class="grupo-campo dinamico-oculto" id="bloqueBiografia"> 
                     <label class="etiqueta-formulario">Biografía del Tutor</label> 
                     <textarea name="biografia" id="inputBiografia" class="textarea-biografia" placeholder="Escriba una breve experiencia laboral o académica del tutor..."><?= htmlspecialchars($_POST['biografia'] ?? '') ?></textarea>
