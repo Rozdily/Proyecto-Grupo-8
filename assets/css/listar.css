@@ -187,7 +187,7 @@ body {
 
 /* Roles */
 .rol-administrador { background-color: #f1f5f9; color: #334155; }
-.rol-docente { background-color: #e0f2fe; color: #0369a1; }
+.rol-tutor { background-color: #e0f2fe; color: #0369a1; }
 .rol-estudiante { background-color: #fef3c7; color: #d97706; }
 
 /* Estados */
@@ -283,6 +283,15 @@ body {
     }
 }
 
+/* --- BUSCADOR BÁSICO --- */
+.buscador-basico input {
+    padding: 10px 15px;
+    font-size: 14px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    width: 250px; /* Tamaño del cuadro de texto */
+}
+
 /* Ajustes Móviles */
 @media (max-width: 600px) {
     .tabla-cabecera {
@@ -292,5 +301,8 @@ body {
     .btn-nuevo {
         width: 100%;
         text-align: center;
+    }
+    .buscador-basico, .buscador-basico input {
+        width: 100%;
     }
 }
