@@ -1,4 +1,15 @@
-<?php session_start(); ?>
+<?php 
+    session_start(); 
+    if (isset($_SESSION['id_usuario'])) {
+        $destinos = [
+        'administrador' => '../../controllers/usuarios_listar.php',
+        'tutor' => '../tutor/panel.php',
+        'estudiante' => '../estudiante/panel.php',
+        ];
+        header('Location: ' . ($destinos[$_SESSION['rol'] ?? ''] ?? '../../controllers/usuarios_listar.php'));
+        exit;
+    }
+    ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
