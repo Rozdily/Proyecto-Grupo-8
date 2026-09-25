@@ -107,7 +107,7 @@ $iniciales = mb_substr($_SESSION['nombre'] ?? 'A', 0, 1) . mb_substr($_SESSION['
         </div>
     </main>
     <!-- BOTÓN CERRAR SESIÓN -->
-    <a href="../views/login/login.php" class="btn-salir-flotante">
+    <a href="../../controllers/logout.php" class="btn-salir-flotante">
         <i class="fa-solid fa-arrow-right-from-bracket"></i>
         <p>Cerrar Sesión</p>
     </a>
