@@ -44,6 +44,11 @@ $iniciales = mb_substr($_SESSION['nombre'] ?? 'A', 0, 1) . mb_substr($_SESSION['
                     <h2>Usuarios Registrados</h2>
                     <p class="subtitulo">Gestione las cuentas de estudiantes, docentes y administradores del sistema.</p>
                 </div>
+                <form action="../../includes/buscar_usuario.php" method="POST">
+                    <div class="buscador-basico">
+                        <input type="text" name = "Usuario_buscado" placeholder="Buscar usuario..." required>
+                    </div>
+                </form>
                 <a href="usuarios_crear.php" class="btn-nuevo">+ Nuevo Usuario</a>
             </div>
 
