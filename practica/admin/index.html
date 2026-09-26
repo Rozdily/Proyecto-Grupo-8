@@ -9,7 +9,7 @@
     <!-- FontAwesome para Iconos Administrativos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Paleta Oficial extraída de tu plantilla de referencia */
+        /* Paleta Oficial e Institucional UPDS */
         :root {
             --azul-upds-institucional: #0B427B; 
             --gris-paginacion: #777777;
@@ -42,7 +42,7 @@
             opacity: 1;
         }
 
-        /* Enlace de Notificaciones con Badge de Urgencia */
+        /* Enlace de Notificaciones en Navbar (Cajón 0) */
         .contenedor-notif-navbar {
             position: relative;
             display: inline-flex;
@@ -58,27 +58,19 @@
         .icono-notif-campana:hover {
             opacity: 1;
         }
-        /* Punto rojo plano que indica urgencia crítica (reemplaza el semáforo central) */
+        /* Punto rojo plano que indica urgencia crítica (tutoria/cohortes de grado) */
         .badge-urgencia-real {
             position: absolute;
             top: -2px;
             right: 2px;
             width: 8px;
             height: 8px;
-            background-color: #dc3545; /* Rojo de alerta de tu veredicto */
+            background-color: #dc3545;
             border-radius: 50%;
             border: 1px solid var(--azul-upds-institucional);
         }
-
-        /* Tarjeta principal compacta sin línea superior de color */
-        .tarjeta-estilo-upds {
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            background-color: #ffffff;
-        }
         
-        /* Tarjetas de acceso directo (KPIs) adaptables */
+        /* Tarjetas de acceso directo (KPIs) de los 6 Cajones Operativos */
         .tarjeta-kpi-admin {
             border: 1px solid #e0e0e0;
             border-radius: 4px;
@@ -90,50 +82,6 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.06);
         }
 
-        /* Tabla compacta y limpia */
-        .tabla-limpia th {
-            background-color: #fdfdfd;
-            color: #555555;
-            font-weight: 600;
-            border-bottom: 2px solid #eef2f5;
-        }
-
-        /* CONFIGURACIÓN PLANA Y EXACTA PARA LA PAGINACIÓN UPDS */
-        .seccion-paginacion-real {
-            font-family: Arial, sans-serif;
-        }
-        .texto-contador-real {
-            color: var(--gris-paginacion);
-            font-size: 13px;
-        }
-        .caja-paginacion-real {
-            display: flex;
-            list-style: none;
-            padding-left: 0;
-            margin-bottom: 0;
-            border-radius: 0;
-        }
-        .caja-paginacion-real .item-real .enlace-real {
-            display: block;
-            padding: 6px 12px;
-            font-size: 13px;
-            text-decoration: none;
-            border: 1px solid var(--borde-cajas);
-            background-color: #ffffff;
-        }
-        .caja-paginacion-real .item-real.texto-btn .enlace-real {
-            color: #2b7bc5;
-        }
-        .caja-paginacion-real .item-real.disabled .enlace-real {
-            color: #bcbcbc;
-            cursor: not-allowed;
-        }
-        .caja-paginacion-real .item-real.active .enlace-real {
-            background-color: #2b7bc5;
-            border-color: #2b7bc5;
-            color: #ffffff;
-        }
-
         .footer-upds {
             font-size: 11px;
             color: #777777;
@@ -143,29 +91,29 @@
 </head>
 <body class="d-flex flex-column" style="height: 100vh; overflow: hidden;">
 
-    <!-- Barra Nav Superior Oficial (Con Icono de Alerta de Urgencia Integrado) -->
+    <!-- Barra Nav Superior Oficial (Con Campana de Alerta Crítica del Cajón 0) -->
     <nav class="navbar navbar-expand-lg navbar-upds-real shadow-sm">
         <div class="container-fluid px-0">
             <div class="d-flex align-items-center">
                 <ul class="navbar-nav flex-row gap-1">
                     <li class="nav-item"><a class="nav-link active" href="#">Inicio</a></li>
-                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="#">Gestión de Usuarios</a></li>
-                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="#">Importación SATS</a></li>
-                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="#">Periodos y Cohortes</a></li>
-                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="#">Parámetros del Sistema</a></li>
-                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="#">Bitácora de Auditoría</a></li>
-                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="#">Cronograma</a></li>
+                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="usuarios_listar.html">Gestión de Usuarios</a></li>
+                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="mg_importar.html">Importación SATS</a></li>
+                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="cohortes_listar.html">Periodos y Cohortes</a></li>
+                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="mg_parametros.html">Parámetros del Sistema</a></li>
+                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="auditoria_bitacora.html">Bitácora de Auditoría</a></li>
+                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="defensas_agenda.html">Cronograma</a></li>
                 </ul>
             </div>
             
             <!-- Contenedor Derecho: Notificaciones + Avatar del Usuario Logueado -->
             <div class="d-flex align-items-center text-white small gap-3">
                 
-                <!-- APARTADO NUEVO: Icono de Campana con Punto de Urgencia Activo -->
+                <!-- 🎛️ 0. NOTIFICACIÓN: Campana con Punto de Urgencia Crítica Activo -->
                 <div class="contenedor-notif-navbar me-1">
-                    <a href="mg_alertas.html" class="icono-notif-campana" title="Ver alertas de urgencia del sistema">
+                    <a href="mg_alertas.html" class="icono-notif-campana" title="Ver alertas de urgencia críticas (Tutorías / Cohortes)">
                         <i class="fa-solid fa-bell fs-5"></i>
-                        <span class="badge-urgencia-real" title="Existen alertas críticas pendientes"></span>
+                        <span class="badge-urgencia-real"></span>
                     </a>
                 </div>
 
@@ -175,7 +123,7 @@
                 </div>
                 <img src="https://upds.edu.bo" class="rounded-circle border border-white-50" alt="Avatar" width="35" height="35">
                 <span class="text-white-50 mx-1">|</span>
-                <a href="#" class="text-white text-decoration-none fw-semibold d-flex align-items-center gap-1" style="font-size: 12px;">
+                <a href="logout.html" class="text-white text-decoration-none fw-semibold d-flex align-items-center gap-1" style="font-size: 12px;">
                     Salir <i class="fa-solid fa-arrow-right-from-bracket fs-6"></i>
                 </a>
             </div>
@@ -187,91 +135,157 @@
         <!-- Indicador de ubicación superior estilo migas de pan -->
         <div class="d-flex justify-content-between align-items-center mb-4 mx-auto" style="max-width: 1000px;">
             <div>
-                <h1 class="h3 mb-0 fw-light text-secondary">Panel de Control <span class="fs-6 text-muted fw-normal">/ central de administración</span></h1>
+                <h1 class="h3 mb-0 fw-light text-secondary">Panel de Control <span class="fs-6 text-muted fw-normal">/ central de administración unificada</span></h1>
             </div>
             <div class="text-muted d-none d-md-block" style="font-size: 12px;">
                 <i class="fa-solid fa-house"></i> / Inicio
             </div>
         </div>
 
-        <!-- SECCIÓN: CUADRÍCULA DE 4 TARJETAS DE ACCESO RÁPIDO OPERATIVOS -->
-        <div class="row g-3 mb-4 mx-auto" style="max-width: 1000px;">
+        <!-- SECCIÓN CENTRAL: CUADRÍCULA MAESTRA DE LOS 6 CAJONES OPERATIVOS -->
+        <div class="row g-3 mx-auto" style="max-width: 1000px;">
             
-            <!-- Tarjeta 1: Gestión de Usuarios -->
-            <div class="col-12 col-sm-6 col-md-3">
+            <!-- 👥 Cajón 1: Gestión de Usuarios -->
+            <div class="col-12 col-md-6">
                 <div class="card h-100 p-3 tarjeta-kpi-admin">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="p-2 rounded text-white d-flex align-items-center justify-content-center" style="background-color: var(--azul-upds-institucional); width: 40px; height: 40px;">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="p-2 rounded text-white d-flex align-items-center justify-content-center flex-shrink-0" style="background-color: var(--azul-upds-institucional); width: 42px; height: 42px;">
                             <i class="fa-solid fa-users-gear fs-5"></i>
                         </div>
                         <div class="overflow-hidden">
-                            <h6 class="mb-0 fw-bold text-dark text-truncate" style="font-size: 13px;">Gestión Usuarios</h6>
-                            <p class="text-muted small mb-0 text-truncate" style="font-size: 10px;">Personal y alumnos.</p>
+                            <h6 class="mb-1 fw-bold text-dark" style="font-size: 14px;">1. Gestión de Usuarios</h6>
+                            <p class="text-muted small mb-2" style="font-size: 11.5px; line-height: 1.3;">Control integral de cuentas, docentes y alumnos de la sede.</p>
+                            <div class="text-secondary small fw-semibold" style="font-size: 11px;">
+                                <span class="d-block mb-1"><i class="fa-solid fa-user-shield me-1 text-muted"></i> Usuarios: Buscar, crear, eliminar, editar (claves), paginación.</span>
+                                <span class="d-block"><i class="fa-solid fa-user-gradient me-1 text-muted"></i> Alumnos: Regulares / <strong class="text-primary">Egresados (if terminados: Asignación de Grado)</strong>.</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="mt-3 pt-2 border-top text-end">
-                        <a href="#" class="text-decoration-none small fw-semibold" style="color: #2b7bc5; font-size: 11px;">
-                            Ingresar <i class="fa-solid fa-chevron-right ms-1" style="font-size: 9px;"></i>
+                    <div class="mt-auto pt-2 border-top text-end">
+                        <a href="usuarios_listar.html" class="text-decoration-none small fw-semibold" style="color: #2b7bc5; font-size: 12px;">
+                            Gestionar Personal <i class="fa-solid fa-chevron-right ms-1" style="font-size: 9px;"></i>
                         </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Tarjeta 2: Importación SATS -->
-            <div class="col-12 col-sm-6 col-md-3">
+            <!-- 📅 Cajón 2: Periodos y Cohortes -->
+            <div class="col-12 col-md-6">
                 <div class="card h-100 p-3 tarjeta-kpi-admin">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="p-2 rounded text-white d-flex align-items-center justify-content-center" style="background-color: #198754; width: 40px; height: 40px;">
-                            <i class="fa-solid fa-file-csv fs-5"></i>
-                        </div>
-                        <div class="overflow-hidden">
-                            <h6 class="mb-0 fw-bold text-dark text-truncate" style="font-size: 13px;">Importación SATS</h6>
-                            <p class="text-muted small mb-0 text-truncate" style="font-size: 10px;">Carga de archivos CSV.</p>
-                        </div>
-                    </div>
-                    <div class="mt-3 pt-2 border-top text-end">
-                        <a href="#" class="text-decoration-none small fw-semibold" style="color: #198754; font-size: 11px;">
-                            Cargar <i class="fa-solid fa-chevron-right ms-1" style="font-size: 9px;"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tarjeta 3: Periodos y Cohortes -->
-            <div class="col-12 col-sm-6 col-md-3">
-                <div class="card h-100 p-3 tarjeta-kpi-admin">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="p-2 rounded text-white d-flex align-items-center justify-content-center" style="background-color: #6c757d; width: 40px; height: 40px;">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="p-2 rounded text-white d-flex align-items-center justify-content-center flex-shrink-0" style="background-color: #6c757d; width: 42px; height: 42px;">
                             <i class="fa-solid fa-layer-group fs-5"></i>
                         </div>
                         <div class="overflow-hidden">
-                            <h6 class="mb-0 fw-bold text-dark text-truncate" style="font-size: 13px;">Periodos & Cohortes</h6>
-                            <p class="text-muted small mb-0 text-truncate" style="font-size: 10px;">Grupos de tesis y módulos.</p>
+                            <h6 class="mb-1 fw-bold text-dark " style="font-size: 14px;">2. Periodos y Cohortes</h6>
+                            <p class="text-muted small mb-2" style="font-size: 11.5px; line-height: 1.3;">Configuración de los tiempos académicos y expedientes de grado.</p>
+                            <div class="text-secondary small fw-semibold" style="font-size: 11px;">
+                                <span class="d-block mb-1"><i class="fa-regular fa-calendar me-1 text-muted"></i> Lista: Periodos de tutoría / Cohortes de Grado (grupos tesis).</span>
+                                <span class="d-block mb-1"><i class="fa-solid fa-graduation-cap me-1 text-muted"></i> Oferta Universitaria: Catálogo de Carreras y Materias.</span>
+                                <span class="d-block"><i class="fa-solid fa-folder-open me-1 text-muted"></i> Expediente de Tesis: Perfil / Borrador / Finalizado.</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="mt-3 pt-2 border-top text-end">
-                        <a href="#" class="text-decoration-none small fw-semibold" style="color: #6c757d; font-size: 11px;">
-                            Administrar <i class="fa-solid fa-chevron-right ms-1" style="font-size: 9px;"></i>
+                    <div class="mt-auto pt-2 border-top text-end">
+                        <a href="cohortes_listar.html" class="text-decoration-none small fw-semibold" style="color: #6c757d; font-size: 12px;">
+                            Configurar Estructuras <i class="fa-solid fa-chevron-right ms-1" style="font-size: 9px;"></i>
                         </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Tarjeta 4: Parámetros del Sistema -->
-            <div class="col-12 col-sm-6 col-md-3">
+            <!-- 🏛️ Cajón 3: Cronograma General -->
+            <div class="col-12 col-md-6">
                 <div class="card h-100 p-3 tarjeta-kpi-admin">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="p-2 rounded text-white d-flex align-items-center justify-content-center" style="background-color: #fd7e14; width: 40px; height: 40px;">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="p-2 rounded text-white d-flex align-items-center justify-content-center flex-shrink-0" style="background-color: #17a2b8; width: 42px; height: 42px;">
+                            <i class="fa-regular fa-calendar-check fs-5"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <h6 class="mb-1 fw-bold text-dark" style="font-size: 14px;">3. Cronograma General</h6>
+                            <p class="text-muted small mb-2" style="font-size: 11.5px; line-height: 1.3;">Agenda e infraestructura horaria unificada para la sede.</p>
+                            <div class="text-secondary small fw-semibold" style="font-size: 11px;">
+                                <span class="d-block mb-1"><i class="fa-solid fa-calendar-days me-1 text-muted"></i> Calendario de Eventos: Ver, crear, editar y eliminar actividades.</span>
+                                <span class="d-block mb-1"><i class="fa-regular fa-clock me-1 text-muted"></i> Gestión de Bloque de Horarios (Turnos institucionales).</span>
+                                <span class="d-block"><i class="fa-solid fa-building-columns me-1 text-muted"></i> Programación de Defensas de Tesis (Aulas, fechas y jurados).</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-auto pt-2 border-top text-end">
+                        <a href="defensas_agenda.html" class="text-decoration-none small fw-semibold" style="color: #17a2b8; font-size: 12px;">
+                            Ver Agenda Sede <i class="fa-solid fa-chevron-right ms-1" style="font-size: 9px;"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ⚙️ Cajón 4: Parámetros del Sistema -->
+            <div class="col-12 col-md-6">
+                <div class="card h-100 p-3 tarjeta-kpi-admin">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="p-2 rounded text-white d-flex align-items-center justify-content-center flex-shrink-0" style="background-color: #fd7e14; width: 42px; height: 42px;">
                             <i class="fa-solid fa-sliders fs-5"></i>
                         </div>
                         <div class="overflow-hidden">
-                            <h6 class="mb-0 fw-bold text-dark text-truncate" style="font-size: 13px;">Parámetros Sistema</h6>
-                            <p class="text-muted small mb-0 text-truncate" style="font-size: 10px;">Límites de carga y reglas.</p>
+                            <h6 class="mb-1 fw-bold text-dark" style="font-size: 14px;">4. Parámetros del Sistema</h6>
+                            <p class="text-muted small mb-2" style="font-size: 11.5px; line-height: 1.3;">Panel técnico de control y límites regulatorios del software.</p>
+                            <div class="text-secondary small fw-semibold" style="font-size: 11px;">
+                                <span class="d-block mb-1"><i class="fa-solid fa-book-bookmark me-1 text-muted"></i> Modificación de Tutorías: Topes de horas de reforzamiento por materia.</span>
+                                <span class="d-block"><i class="fa-solid fa-gavel me-1 text-muted"></i> Modificación de Tesis: Cargas de tutores, plazos y notas de defensas.</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="mt-3 pt-2 border-top text-end">
-                        <a href="#" class="text-decoration-none small fw-semibold" style="color: #fd7e14; font-size: 11px;">
-                            Configurar <i class="fa-solid fa-chevron-right ms-1" style="font-size: 9px;"></i>
+                    <div class="mt-auto pt-2 border-top text-end">
+                        <a href="mg_parametros.html" class="text-decoration-none small fw-semibold" style="color: #fd7e14; font-size: 12px;">
+                            Ajustar Reglas <i class="fa-solid fa-chevron-right ms-1" style="font-size: 9px;"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <!-- 📊 Cajón 5: Control y Reportes -->
+            <div class="col-12 col-md-6">
+                <div class="card h-100 p-3 tarjeta-kpi-admin">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="p-2 rounded text-white d-flex align-items-center justify-content-center flex-shrink-0" style="background-color: #28a745; width: 42px; height: 42px;">
+                            <i class="fa-solid fa-chart-pie fs-5"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <h6 class="mb-1 fw-bold text-dark" style="font-size: 14px;">5. Control y Reportes</h6>
+                            <p class="text-muted small mb-2" style="font-size: 11.5px; line-height: 1.3;">Supervisión analítica y bitácora de seguridad del ecosistema.</p>
+                            <div class="text-secondary small fw-semibold" style="font-size: 11px;">
+                                <span class="d-block mb-1"><i class="fa-solid fa-chart-column me-1 text-muted"></i> Reportes Académicos: Rendimiento del periodo y desempeño del tutor.</span>
+                                <span class="d-block"><i class="fa-solid fa-clock-history me-1 text-muted"></i> Auditoría Inmutable: Caja negra policial de movimientos y rastreo IP.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-auto pt-2 border-top text-end">
+                        <a href="auditoria_bitacora.html" class="text-decoration-none small fw-semibold" style="color: #28a745; font-size: 12px;">
+                            Consultar Registros <i class="fa-solid fa-chevron-right ms-1" style="font-size: 9px;"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 📥 Cajón 6: Importación SATS -->
+            <div class="col-12 col-md-6">
+                <div class="card h-100 p-3 tarjeta-kpi-admin">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="p-2 rounded text-white d-flex align-items-center justify-content-center flex-shrink-0" style="background-color: #dc3545; width: 42px; height: 42px;">
+                            <i class="fa-solid fa-file-import fs-5"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <h6 class="mb-1 fw-bold text-dark" style="font-size: 14px;">6. Importación SATS</h6>
+                            <p class="text-muted small mb-2" style="font-size: 11.5px; line-height: 1.3;">Alimentador masivo automatizado para sincronización de padrones.</p>
+                            <div class="text-secondary small fw-semibold" style="font-size: 11px;">
+                                <span class="d-block mb-1"><i class="fa-solid fa-folder-minus me-1 text-muted"></i> Zona interactiva para arrastrar archivos CSV (Dropzone masivo).</span>
+                                <span class="d-block mb-1"><i class="fa-solid fa-eye me-1 text-muted"></i> Previsualización en vivo fila por fila y diagnóstico de errores.</span>
+                                <span class="d-block"><i class="fa-solid fa-circle-nodes me-1 text-muted"></i> Clasificación automática en las modalidades según su carrera.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-auto pt-2 border-top text-end">
+                        <a href="mg_importar.html" class="text-decoration-none small fw-semibold" style="color: #dc3545; font-size: 12px;">
+                            Iniciar Carga SATS <i class="fa-solid fa-chevron-right ms-1" style="font-size: 9px;"></i>
                         </a>
                     </div>
                 </div>
@@ -279,94 +293,15 @@
 
         </div>
 
-        <!-- MÓDULO CENTRAL: CRONOGRAMA DE DEFENSAS -->
-        <div class="card tarjeta-estilo-upds p-4 mb-3 mx-auto" style="max-width: 1000px;">
-            
-            <div class="row align-items-center g-3 mb-4">
-                <div class="col-12 col-md-8">
-                    <h5 class="mb-1 text-dark fw-bold"><i class="fa-regular fa-calendar-check me-2 text-secondary"></i>Cronograma Inmediato de Defensas</h5>
-                    <p class="text-muted small mb-0">Vista rápida institucional de los exámenes de grado y sustentaciones de tesis agendadas para la sede.</p>
-                </div>
-                <div class="col-12 col-md-4 text-md-end">
-                    <a href="#" class="btn btn-sm btn-outline-secondary fw-semibold w-100 w-md-auto" style="font-size: 12px;">Ver Calendario Completo</a>
-                </div>
-            </div>
-
-            <!-- Tabla de datos con pie duplicado -->
-            <div class="table-responsive">
-                <table class="table table-hover align-middle table-sm limpia mb-0" style="font-size: 13px;">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="py-2 px-3">Fecha / Hora</th>
-                            <th scope="col" class="py-2 px-3">Estudiante</th>
-                            <th scope="col" class="py-2 px-3">Carrera / Asignatura</th>
-                            <th scope="col" class="py-2 px-3">Ambiente</th>
-                            <th scope="col" class="py-2 px-3">Jurados Asignados</th>
-                            <th scope="col" class="py-2 px-3 text-center">Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="text-dark fw-semibold py-2 px-3">28/09/2026 <span class="text-muted fw-normal d-block" style="font-size: 11px;">14:30 - 16:30</span></td>
-                            <td class="text-dark fw-semibold py-2 px-3">María Condori</td>
-                            <td class="text-muted py-2 px-3">Ingeniería de Sistemas <span class="text-secondary d-block fw-semibold" style="font-size: 11px;">Proyecto de Grado</span></td>
-                            <td class="col-usuario py-2 px-3">Aula Magna A</td>
-                            <td class="py-2 px-3 text-muted">Ing. Carlos García<br>Ing. Juan Pérez</td>
-                            <td class="py-2 px-3"><span class="badge bg-success px-2">Programada</span></td>
-                        </tr>
-                        <tr>
-                            <td class="text-dark fw-semibold py-2 px-3">30/09/2026 <span class="text-muted fw-normal d-block" style="font-size: 11px;">16:00 - 18:00</span></td>
-                            <td class="text-dark fw-semibold py-2 px-3">Alejandro Delgado</td>
-                            <td class="text-muted py-2 px-3">Ingeniería de Sistemas <span class="text-secondary d-block fw-semibold" style="font-size: 11px;">Tesis de Grado</span></td>
-                            <td class="col-usuario py-2 px-3">Laboratorio de Redes</td>
-                            <td class="py-2 px-3 text-muted">Ing. Ana Martínez<br>Ing. Pedro Rodríguez</td>
-                            <td class="py-2 px-3"><span class="badge bg-warning text-dark px-2">Reprogramada</span></td>
-                        </tr>
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <th scope="col" class="py-2 px-3">Fecha / Hora</th>
-                            <th scope="col" class="py-2 px-3">Estudiante</th>
-                            <th scope="col" class="py-2 px-3">Carrera / Asignatura</th>
-                            <th scope="col" class="py-2 px-3">Ambiente</th>
-                            <th scope="col" class="py-2 px-3">Jurados Asignados</th>
-                            <th scope="col" class="py-2 px-3 text-center">Estado</th>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-
-            <!-- SECCIÓN INFERIOR DE PAGINACIÓN CORREGIDA -->
-            <div class="d-flex justify-content-between align-items-center mt-4 seccion-paginacion-real">
-                <div class="texto-contador-real">
-                    Mostrando registros del 1 al 2 de 2 registros de defensas
-                </div>
-                <nav aria-label="Paginación de defensas">
-                    <ul class="caja-paginacion-real">
-                        <li class="item-real disabled texto-btn">
-                            <a class="enlace-real" href="#" tabindex="-1" aria-disabled="true">Anterior</a>
-                        </li>
-                        <li class="item-real active">
-                            <a class="enlace-real" href="#">1</a>
-                        </li>
-                        <li class="item-real disabled texto-btn">
-                            <a class="enlace-real" href="#">Siguiente</a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-
-        </div>
-
-        <!-- BARRA DE HERRAMIENTAS INFERIOR: ACCESO UNIFICADO A LA BITÁCORA -->
-        <div class="d-flex justify-content-between align-items-center mx-auto" style="max-width: 1000px;">
+        <!-- BARRA INFORMATIVA INFERIOR DE SEGURIDAD GENERAL -->
+        <div class="d-flex justify-content-between align-items-center mx-auto mt-4 pt-2" style="max-width: 1000px;">
             <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-primary-subtle text-primary border rounded-pill" style="font-size: 10px;">Seguridad</span>
-                <span class="text-secondary" style="font-size: 12px;">Ecosistema de datos inmutable y activo.</span>
+                <span class="badge bg-primary-subtle text-primary border rounded-pill" style="font-size: 10px;">Seguridad Activa</span>
+                <span class="text-secondary" style="font-size: 12px;">Ecosistema de datos inmutable. Licenciatura UPDS v5.1</span>
             </div>
             <div>
-                <a href="auditoria_bitacora.html" class="btn btn-sm btn-white border shadow-sm fw-bold text-secondary d-inline-flex align-items-center gap-1.5" style="font-size: 12px; height: 30px; background-color: #ffffff;">
-                    <i class="fa-solid fa-clock-history" style="color: var(--azul-upds-institucional);"></i> Consultar Bitácora de Auditoría
+                <a href="auditoria_bitacora.html" class="text-decoration-none small text-muted text-hover-dark fw-semibold" style="font-size: 12px; border-bottom: 1px dashed #bbb;">
+                    <i class="fa-solid fa-shield-halved me-1"></i> Panel de Resguardo Técnico
                 </a>
             </div>
         </div>
