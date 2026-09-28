@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Importación SATS - UPDS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --azul-upds-institucional: #0B427B; --gris-paginacion: #777777; --borde-cajas: #e0e0e0; }
+        body { background-color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; }
+        .navbar-upds-real { background-color: var(--azul-upds-institucional); padding: 0 1.5rem; min-height: 50px; }
+        .navbar-upds-real .nav-link { color: #ffffff !important; font-size: 13px; opacity: 0.9; padding: 0.5rem 0.8rem !important; }
+        .navbar-upds-real .nav-link:hover { opacity: 1; background-color: rgba(255,255,255,0.1); }
+        .navbar-upds-real .nav-link.active { font-weight: bold; opacity: 1; }
+        .dropdown-menu-upds { border: 1px solid var(--borde-cajas); border-radius: 4px; box-shadow: 0 6px 16px rgba(0,0,0,0.1); font-size: 13px; padding: 6px; margin-top: 2px; }
+        .dropdown-menu-upds .dropdown-item { border-radius: 3px; padding: 8px 12px; color: #333333; }
+        .dropdown-menu-upds .dropdown-item i { width: 18px; color: var(--azul-upds-institucional); }
+        .dropdown-menu-upds .dropdown-item:hover, .dropdown-menu-upds .dropdown-item:focus { background-color: var(--azul-upds-institucional); color: #ffffff; }
+        .dropdown-menu-upds .dropdown-item:hover i, .dropdown-menu-upds .dropdown-item:focus i { color: #ffffff; }
+        .tarjeta-estilo-upds { border: 1px solid #e0e0e0; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); background-color: #ffffff; }
+        .tabla-limpia th { background-color: #fdfdfd; color: #555555; font-weight: 600; border-bottom: 2px solid #eef2f5; }
+        .footer-upds { font-size: 11px; color: #777777; padding: 1.5rem 0; }
+        .btn-primario-upds { background-color: var(--azul-upds-institucional); border-color: var(--azul-upds-institucional); }
+        .btn-primario-upds:hover { background-color: #083258; border-color: #083258; }
+
+        /* Zona de arrastre de archivos */
+        .zona-dropzone {
+            border: 2px dashed #c7d2da;
+            border-radius: 6px;
+            background-color: #fafcfe;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .zona-dropzone:hover, .zona-dropzone.arrastrando {
+            background-color: #eef5fc;
+            border-color: var(--azul-upds-institucional);
+        }
+        .zona-dropzone i { color: #90a4b7; font-size: 34px; }
+        .zona-dropzone.arrastrando i { color: var(--azul-upds-institucional); }
+
+        .paso-numero {
+            width: 26px; height: 26px; border-radius: 50%;
+            background-color: var(--azul-upds-institucional); color: #fff;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700; flex-shrink: 0;
+        }
+    </style>
+</head>
+<body class="d-flex flex-column">
+
+    <nav class="navbar navbar-expand-lg navbar-upds-real shadow-sm">
+        <div class="container-fluid px-0">
+            <div class="d-flex align-items-center">
+                <ul class="navbar-nav flex-row gap-1">
+                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="index.html">Inicio</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="menuGestionUsuarios" role="button" data-bs-toggle="dropdown" aria-expanded="false">Gestión de Usuarios</a>
+                        <ul class="dropdown-menu dropdown-menu-upds" aria-labelledby="menuGestionUsuarios">
+                            <li><a class="dropdown-item" href="usuarios_estudiantes.html"><i class="fa-solid fa-user-graduate"></i>Estudiantes</a></li>
+                            <li><a class="dropdown-item" href="usuarios_listar.html"><i class="fa-solid fa-user-tie"></i>Usuarios</a></li>
+                            <li><a class="dropdown-item" href="usuarios_tutores.html"><i class="fa-solid fa-chalkboard-user"></i>Tutor</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a class="nav-link active d-none d-md-block" href="mg_importar.html">Importación SATS</a></li>
+                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="cohortes_listar.html">Periodos y Cohortes</a></li>
+                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="mg_parametros.html">Parámetros del Sistema</a></li>
+                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="auditoria_bitacora.html">Bitácora de Auditoría</a></li>
+                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="defensas_agenda.html">Cronograma</a></li>
+                </ul>
+            </div>
+            <div class="d-flex align-items-center text-white small gap-2">
+                <div class="text-end lh-1 d-none d-sm-block" style="font-size: 11px;">
+                    <span class="fw-bold d-block">Jonathan Arturo</span>
+                    <span class="text-white-50 fs-7">j.jonathan.delariva.m@upds.edu.bo</span>
+                </div>
+                <img src="https://upds.edu.bo" class="rounded-circle border border-white-50" alt="Avatar" width="35" height="35">
+                <span class="text-white-50 mx-1">|</span>
+                <a href="logout.html" class="text-white text-decoration-none fw-semibold d-flex align-items-center gap-1" style="font-size: 12px;">
+                    Salir <i class="fa-solid fa-arrow-right-from-bracket fs-6"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-fluid px-4 py-4 flex-grow-1">
+
+        <div class="d-flex justify-content-between align-items-center mb-4 mx-auto" style="max-width: 1100px;">
+            <div>
+                <h1 class="h3 mb-0 fw-light text-secondary">Importación SATS <span class="fs-6 text-muted fw-normal">/ alimentador de padrones</span></h1>
+            </div>
+            <div class="text-muted d-none d-sm-block" style="font-size: 12px;">
+                <i class="fa-solid fa-house"></i> / Inicio / Importación SATS
+            </div>
+        </div>
+
+        <div class="card tarjeta-estilo-upds p-4 mb-3 mx-auto" style="max-width: 1100px;">
+            <div class="d-flex align-items-start gap-2 mb-3">
+                <span class="paso-numero">1</span>
+                <div>
+                    <h6 class="mb-0 fw-bold text-dark">Cargar archivo del SATS</h6>
+                    <p class="text-muted small mb-0">Formato admitido: .csv separado por comas, exportado directamente del Sistema Académico de Transferencia SATS.</p>
+                </div>
+            </div>
+
+            <div class="zona-dropzone" id="zonaDropzone" onclick="document.getElementById('inputArchivo').click()">
+                <i class="fa-solid fa-file-csv mb-2 d-block"></i>
+                <p class="mb-1 fw-semibold text-dark">Arrastra aquí tu archivo CSV o haz clic para buscarlo</p>
+                <p class="text-muted small mb-0" id="nombreArchivo">Ningún archivo seleccionado todavía.</p>
+                <input type="file" id="inputArchivo" accept=".csv" class="d-none">
+            </div>
+        </div>
+
+        <div class="card tarjeta-estilo-upds p-4 mb-3 mx-auto d-none" id="tarjetaVistaPrevia" style="max-width: 1100px;">
+            <div class="d-flex align-items-start gap-2 mb-3">
+                <span class="paso-numero">2</span>
+                <div>
+                    <h6 class="mb-0 fw-bold text-dark">Previsualización y diagnóstico</h6>
+                    <p class="text-muted small mb-0">Revisa fila por fila antes de confirmar la importación masiva.</p>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-6 col-md-3">
+                    <div class="border rounded p-2 text-center">
+                        <div class="fw-bold text-dark fs-5" id="totalFilas">0</div>
+                        <div class="text-muted" style="font-size: 11px;">Filas leídas</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="border rounded p-2 text-center">
+                        <div class="fw-bold text-success fs-5" id="totalValidas">0</div>
+                        <div class="text-muted" style="font-size: 11px;">Filas válidas</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="border rounded p-2 text-center">
+                        <div class="fw-bold text-danger fs-5" id="totalErrores">0</div>
+                        <div class="text-muted" style="font-size: 11px;">Filas con error</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="border rounded p-2 text-center">
+                        <div class="fw-bold text-dark fs-5" id="totalCarreras">0</div>
+                        <div class="text-muted" style="font-size: 11px;">Carreras detectadas</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive" style="max-height: 320px; overflow-y: auto;">
+                <table class="table table-hover align-middle table-sm tabla-limpia mb-0" style="font-size: 13px;">
+                    <thead>
+                        <tr>
+                            <th class="py-2 px-3">Fila</th>
+                            <th class="py-2 px-3">Nombre Completo</th>
+                            <th class="py-2 px-3">Correo</th>
+                            <th class="py-2 px-3">Carrera</th>
+                            <th class="py-2 px-3">Diagnóstico</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoVistaPrevia"></tbody>
+                </table>
+            </div>
+
+            <div class="mt-3 pt-3 border-top d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="reiniciarImportacion()">Cancelar</button>
+                <button type="button" class="btn btn-primario-upds text-white btn-sm" id="btnIniciarImportacion" onclick="iniciarImportacion()">
+                    <i class="fa-solid fa-upload me-1"></i> Iniciar Importación
+                </button>
+            </div>
+
+            <div class="progress mt-3 d-none" id="barraProgreso" style="height: 8px;">
+                <div class="progress-bar" role="progressbar" style="width: 0%; background-color: var(--azul-upds-institucional);" id="barraProgresoInterna"></div>
+            </div>
+        </div>
+
+        <div class="alert alert-success d-none mx-auto" style="max-width: 1100px;" id="alertaExito"></div>
+    </main>
+
+    <footer class="container-fluid px-4 bg-white border-top">
+        <div class="footer-upds mx-auto w-100" style="max-width: 1100px;">
+            UPDS.NET v5.1 © 2026 - Desarrollado por la Universidad Privada Domingo Savio.
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const zona = document.getElementById('zonaDropzone');
+        const input = document.getElementById('inputArchivo');
+
+        ['dragenter', 'dragover'].forEach(evento => {
+            zona.addEventListener(evento, e => { e.preventDefault(); zona.classList.add('arrastrando'); });
+        });
+        ['dragleave', 'drop'].forEach(evento => {
+            zona.addEventListener(evento, e => { e.preventDefault(); zona.classList.remove('arrastrando'); });
+        });
+        zona.addEventListener('drop', e => {
+            if (e.dataTransfer.files.length) {
+                input.files = e.dataTransfer.files;
+                procesarArchivo(e.dataTransfer.files[0]);
+            }
+        });
+        input.addEventListener('change', () => {
+            if (input.files.length) procesarArchivo(input.files[0]);
+        });
+
+        function procesarArchivo(archivo) {
+            document.getElementById('nombreArchivo').textContent = `Archivo seleccionado: ${archivo.name}`;
+            const lector = new FileReader();
+            lector.onload = evento => analizarCsv(evento.target.result);
+            lector.readAsText(archivo);
+        }
+
+        function analizarCsv(contenido) {
+            const lineas = contenido.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+            const filas = lineas[0] && lineas[0].toLowerCase().includes('nombre') ? lineas.slice(1) : lineas;
+            const cuerpo = document.getElementById('cuerpoVistaPrevia');
+            cuerpo.innerHTML = '';
+
+            let validas = 0, errores = 0;
+            const carreras = new Set();
+
+            filas.forEach((linea, indice) => {
+                const columnas = linea.split(',').map(c => c.trim());
+                const [nombre = '', correo = '', carrera = ''] = columnas;
+                const esValida = columnas.length >= 3 && nombre !== '' && correo.includes('@') && carrera !== '';
+                if (esValida) { validas++; carreras.add(carrera); } else { errores++; }
+
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td class="text-muted py-2 px-3">${indice + 1}</td>
+                    <td class="py-2 px-3">${nombre || '<span class=\"text-danger\">— vacío —</span>'}</td>
+                    <td class="py-2 px-3">${correo || '<span class=\"text-danger\">— vacío —</span>'}</td>
+                    <td class="py-2 px-3">${carrera || '<span class=\"text-danger\">— vacío —</span>'}</td>
+                    <td class="py-2 px-3">${esValida
+                        ? '<span class="badge bg-success px-2">Válido</span>'
+                        : '<span class="badge bg-danger px-2">Error de formato</span>'}</td>`;
+                cuerpo.appendChild(fila);
+            });
+
+            document.getElementById('totalFilas').textContent = filas.length;
+            document.getElementById('totalValidas').textContent = validas;
+            document.getElementById('totalErrores').textContent = errores;
+            document.getElementById('totalCarreras').textContent = carreras.size;
+            document.getElementById('tarjetaVistaPrevia').classList.remove('d-none');
+            document.getElementById('alertaExito').classList.add('d-none');
+        }
+
+        function iniciarImportacion() {
+            const boton = document.getElementById('btnIniciarImportacion');
+            const barra = document.getElementById('barraProgreso');
+            const interna = document.getElementById('barraProgresoInterna');
+            boton.disabled = true;
+            barra.classList.remove('d-none');
+            let progreso = 0;
+            const intervalo = setInterval(() => {
+                progreso += 10;
+                interna.style.width = progreso + '%';
+                if (progreso >= 100) {
+                    clearInterval(intervalo);
+                    boton.disabled = false;
+                    const validas = document.getElementById('totalValidas').textContent;
+                    const alerta = document.getElementById('alertaExito');
+                    alerta.textContent = `✅ Importación finalizada: ${validas} registros incorporados y clasificados por carrera.`;
+                    alerta.classList.remove('d-none');
+                }
+            }, 150);
+        }
+
+        function reiniciarImportacion() {
+            input.value = '';
+            document.getElementById('nombreArchivo').textContent = 'Ningún archivo seleccionado todavía.';
+            document.getElementById('tarjetaVistaPrevia').classList.add('d-none');
+            document.getElementById('alertaExito').classList.add('d-none');
+            document.getElementById('barraProgreso').classList.add('d-none');
+            document.getElementById('barraProgresoInterna').style.width = '0%';
+        }
+    </script>
+</body>
+</html>

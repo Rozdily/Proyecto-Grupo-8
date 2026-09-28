@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitácora de Auditoría - UPDS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --azul-upds-institucional: #0B427B; --gris-paginacion: #777777; --borde-cajas: #e0e0e0; }
+        body { background-color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; }
+        .navbar-upds-real { background-color: var(--azul-upds-institucional); padding: 0 1.5rem; min-height: 50px; }
+        .navbar-upds-real .nav-link { color: #ffffff !important; font-size: 13px; opacity: 0.9; padding: 0.5rem 0.8rem !important; }
+        .navbar-upds-real .nav-link:hover { opacity: 1; background-color: rgba(255,255,255,0.1); }
+        .navbar-upds-real .nav-link.active { font-weight: bold; opacity: 1; }
+        .dropdown-menu-upds { border: 1px solid var(--borde-cajas); border-radius: 4px; box-shadow: 0 6px 16px rgba(0,0,0,0.1); font-size: 13px; padding: 6px; margin-top: 2px; }
+        .dropdown-menu-upds .dropdown-item { border-radius: 3px; padding: 8px 12px; color: #333333; }
+        .dropdown-menu-upds .dropdown-item i { width: 18px; color: var(--azul-upds-institucional); }
+        .dropdown-menu-upds .dropdown-item:hover, .dropdown-menu-upds .dropdown-item:focus { background-color: var(--azul-upds-institucional); color: #ffffff; }
+        .dropdown-menu-upds .dropdown-item:hover i, .dropdown-menu-upds .dropdown-item:focus i { color: #ffffff; }
+        .tarjeta-estilo-upds { border: 1px solid #e0e0e0; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); background-color: #ffffff; }
+        .tabla-limpia th { background-color: #fdfdfd; color: #555555; font-weight: 600; border-bottom: 2px solid #eef2f5; }
+        .footer-upds { font-size: 11px; color: #777777; padding: 1.5rem 0; }
+        .btn-primario-upds { background-color: var(--azul-upds-institucional); border-color: var(--azul-upds-institucional); }
+        .btn-primario-upds:hover { background-color: #083258; border-color: #083258; }
+        .fila-ip { font-family: 'Consolas', monospace; font-size: 12px; color: #555; }
+    </style>
+</head>
+<body class="d-flex flex-column">
+
+    <nav class="navbar navbar-expand-lg navbar-upds-real shadow-sm">
+        <div class="container-fluid px-0">
+            <div class="d-flex align-items-center">
+                <ul class="navbar-nav flex-row gap-1">
+                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="index.html">Inicio</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="menuGestionUsuarios" role="button" data-bs-toggle="dropdown" aria-expanded="false">Gestión de Usuarios</a>
+                        <ul class="dropdown-menu dropdown-menu-upds" aria-labelledby="menuGestionUsuarios">
+                            <li><a class="dropdown-item" href="usuarios_estudiantes.html"><i class="fa-solid fa-user-graduate"></i>Estudiantes</a></li>
+                            <li><a class="dropdown-item" href="usuarios_listar.html"><i class="fa-solid fa-user-tie"></i>Usuarios</a></li>
+                            <li><a class="dropdown-item" href="usuarios_tutores.html"><i class="fa-solid fa-chalkboard-user"></i>Tutor</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="mg_importar.html">Importación SATS</a></li>
+                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="cohortes_listar.html">Periodos y Cohortes</a></li>
+                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="mg_parametros.html">Parámetros del Sistema</a></li>
+                    <li class="nav-item"><a class="nav-link active d-none d-md-block" href="auditoria_bitacora.html">Bitácora de Auditoría</a></li>
+                    <li class="nav-item"><a class="nav-link d-none d-md-block" href="defensas_agenda.html">Cronograma</a></li>
+                </ul>
+            </div>
+            <div class="d-flex align-items-center text-white small gap-2">
+                <div class="text-end lh-1 d-none d-sm-block" style="font-size: 11px;">
+                    <span class="fw-bold d-block">Jonathan Arturo</span>
+                    <span class="text-white-50 fs-7">j.jonathan.delariva.m@upds.edu.bo</span>
+                </div>
+                <img src="https://upds.edu.bo" class="rounded-circle border border-white-50" alt="Avatar" width="35" height="35">
+                <span class="text-white-50 mx-1">|</span>
+                <a href="logout.html" class="text-white text-decoration-none fw-semibold d-flex align-items-center gap-1" style="font-size: 12px;">
+                    Salir <i class="fa-solid fa-arrow-right-from-bracket fs-6"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-fluid px-4 py-4 flex-grow-1">
+
+        <div class="d-flex justify-content-between align-items-center mb-3 mx-auto" style="max-width: 1150px;">
+            <div>
+                <h1 class="h3 mb-0 fw-light text-secondary">Bitácora de Auditoría <span class="fs-6 text-muted fw-normal">/ registro inmutable</span></h1>
+            </div>
+            <div class="text-muted d-none d-sm-block" style="font-size: 12px;">
+                <i class="fa-solid fa-house"></i> / Inicio / Bitácora de Auditoría
+            </div>
+        </div>
+
+        <div class="alert alert-secondary d-flex align-items-center gap-2 mx-auto mb-3" style="max-width: 1150px; font-size: 12.5px;">
+            <i class="fa-solid fa-lock"></i>
+            <span>Este registro es de solo lectura: ningún movimiento del sistema puede editarse ni eliminarse desde aquí.</span>
+        </div>
+
+        <div class="card tarjeta-estilo-upds p-4 mb-4 mx-auto" style="max-width: 1150px;">
+
+            <div class="row g-3 align-items-end mb-4">
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-semibold mb-1">Desde</label>
+                    <input type="date" class="form-control form-control-sm" id="filtroDesde">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-semibold mb-1">Hasta</label>
+                    <input type="date" class="form-control form-control-sm" id="filtroHasta">
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label small fw-semibold mb-1">Acción</label>
+                    <select class="form-select form-select-sm" id="filtroAccion">
+                        <option value="">Todas</option>
+                        <option value="creacion">Creación</option>
+                        <option value="edicion">Edición</option>
+                        <option value="eliminacion">Eliminación</option>
+                        <option value="login">Inicio de sesión</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label small fw-semibold mb-1">Buscar usuario / módulo</label>
+                    <input type="text" class="form-control form-control-sm" id="filtroTexto" placeholder="Ej. Rojas, Cohortes...">
+                </div>
+                <div class="col-12 col-md-2 text-md-end">
+                    <button type="button" class="btn btn-sm btn-primario-upds text-white w-100" onclick="exportarCsv()">
+                        <i class="fa-solid fa-file-export me-1"></i>Exportar
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle table-sm tabla-limpia mb-0" style="font-size: 12.5px;" id="tablaBitacora">
+                    <thead>
+                        <tr>
+                            <th class="py-2 px-3">Fecha / Hora</th>
+                            <th class="py-2 px-3">Usuario</th>
+                            <th class="py-2 px-3">Acción</th>
+                            <th class="py-2 px-3">Módulo</th>
+                            <th class="py-2 px-3">Detalle</th>
+                            <th class="py-2 px-3">Dirección IP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-fecha="2026-09-24" data-accion="creacion">
+                            <td class="text-muted py-2 px-3">24/09/2026 08:12</td>
+                            <td class="py-2 px-3 fw-semibold">rfernandez</td>
+                            <td class="py-2 px-3"><span class="badge bg-success px-2">Creación</span></td>
+                            <td class="py-2 px-3">Estudiantes</td>
+                            <td class="py-2 px-3">Registró al estudiante "Erick Vargas".</td>
+                            <td class="py-2 px-3 fila-ip">190.129.44.12</td>
+                        </tr>
+                        <tr data-fecha="2026-09-24" data-accion="edicion">
+                            <td class="text-muted py-2 px-3">24/09/2026 09:45</td>
+                            <td class="py-2 px-3 fw-semibold">adelgado</td>
+                            <td class="py-2 px-3"><span class="badge bg-primary px-2">Edición</span></td>
+                            <td class="py-2 px-3">Parámetros del Sistema</td>
+                            <td class="py-2 px-3">Actualizó el tope de horas de tutoría de 6 a 8.</td>
+                            <td class="py-2 px-3 fila-ip">190.129.44.02</td>
+                        </tr>
+                        <tr data-fecha="2026-09-23" data-accion="eliminacion">
+                            <td class="text-muted py-2 px-3">23/09/2026 17:03</td>
+                            <td class="py-2 px-3 fw-semibold">adelgado</td>
+                            <td class="py-2 px-3"><span class="badge bg-danger px-2">Eliminación</span></td>
+                            <td class="py-2 px-3">Cohortes</td>
+                            <td class="py-2 px-3">Eliminó la cohorte "Tesis 2024-C" (duplicada).</td>
+                            <td class="py-2 px-3 fila-ip">190.129.44.02</td>
+                        </tr>
+                        <tr data-fecha="2026-09-23" data-accion="login">
+                            <td class="text-muted py-2 px-3">23/09/2026 07:58</td>
+                            <td class="py-2 px-3 fw-semibold">lmamani</td>
+                            <td class="py-2 px-3"><span class="badge bg-secondary px-2">Inicio de sesión</span></td>
+                            <td class="py-2 px-3">Autenticación</td>
+                            <td class="py-2 px-3">Inicio de sesión exitoso desde panel de tutor.</td>
+                            <td class="py-2 px-3 fila-ip">45.182.201.7</td>
+                        </tr>
+                        <tr data-fecha="2026-09-22" data-accion="creacion">
+                            <td class="text-muted py-2 px-3">22/09/2026 14:20</td>
+                            <td class="py-2 px-3 fw-semibold">rfernandez</td>
+                            <td class="py-2 px-3"><span class="badge bg-success px-2">Creación</span></td>
+                            <td class="py-2 px-3">Periodos y Cohortes</td>
+                            <td class="py-2 px-3">Abrió el periodo "Semestre I - 2026".</td>
+                            <td class="py-2 px-3 fila-ip">190.129.44.12</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="text-center text-muted small py-3 d-none" id="mensajeVacio">📂 No hay movimientos que coincidan con los filtros aplicados.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="container-fluid px-4 bg-white border-top">
+        <div class="footer-upds mx-auto w-100" style="max-width: 1150px;">
+            UPDS.NET v5.1 © 2026 - Desarrollado por la Universidad Privada Domingo Savio.
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function aplicarFiltros() {
+            const desde = document.getElementById('filtroDesde').value;
+            const hasta = document.getElementById('filtroHasta').value;
+            const accion = document.getElementById('filtroAccion').value;
+            const texto = document.getElementById('filtroTexto').value.toLowerCase();
+            let visibles = 0;
+
+            document.querySelectorAll('#tablaBitacora tbody tr').forEach(fila => {
+                const fecha = fila.dataset.fecha;
+                const accionFila = fila.dataset.accion;
+                let mostrar = true;
+                if (desde && fecha < desde) mostrar = false;
+                if (hasta && fecha > hasta) mostrar = false;
+                if (accion && accionFila !== accion) mostrar = false;
+                if (texto && !fila.textContent.toLowerCase().includes(texto)) mostrar = false;
+                fila.style.display = mostrar ? '' : 'none';
+                if (mostrar) visibles++;
+            });
+            document.getElementById('mensajeVacio').classList.toggle('d-none', visibles !== 0);
+        }
+
+        ['filtroDesde', 'filtroHasta', 'filtroAccion', 'filtroTexto'].forEach(id => {
+            document.getElementById(id).addEventListener('input', aplicarFiltros);
+        });
+
+        function exportarCsv() {
+            const filas = [['Fecha', 'Usuario', 'Accion', 'Modulo', 'Detalle', 'IP']];
+            document.querySelectorAll('#tablaBitacora tbody tr').forEach(fila => {
+                if (fila.style.display === 'none') return;
+                const celdas = fila.querySelectorAll('td');
+                filas.push([...celdas].map(c => `"${c.textContent.trim().replace(/"/g, '""')}"`));
+            });
+            const csv = filas.map(f => f.join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const enlace = document.createElement('a');
+            enlace.href = URL.createObjectURL(blob);
+            enlace.download = `bitacora_auditoria_${new Date().toISOString().slice(0, 10)}.csv`;
+            enlace.click();
+        }
+    </script>
+</body>
+</html>

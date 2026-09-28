@@ -1,6 +1,6 @@
 <?php
 $host = getenv('DB_HOST') ?: 'localhost';
-$db   = getenv('DB_NAME') ?: 'tutorias_db';
+$db   = getenv('DB_NAME') ?: 'db_tutorias_upds';
 $user = getenv('DB_USER') ?: 'administrador';
 $pass = getenv('DB_PASS') ?: 'grupo8';
 $charset = 'utf8mb4';

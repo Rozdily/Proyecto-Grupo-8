@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Gestión de periodos, cohortes, carreras, materias y expedientes de la Universidad Privada Domingo Savio.">
+    <title>Periodos y Cohortes | UPDS</title>
+
+    <!-- Bootstrap 5.3 CSS Oficial Mandatorio -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome para Iconos Administrativos, Filtros y Pestañas -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* PALETA DE COLORES OFICIAL UPDS Y ESTILOS GLOBALES DE APLICACIÓN */
+        :root {
+            --azul-upds-institucional: #0B427B; 
+            --gris-paginacion: #777777;
+            --borde-cajas: #e0e0e0;
+        }
+        body {
+            background-color: #ffffff; /* Fondo general blanco pulcro */
+            font-family: 'Segoe UI', Arial, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* NAVBAR SUPERIOR INSTITUCIONAL PLANO */
+        .navbar-upds-real {
+            background-color: var(--azul-upds-institucional);
+            padding: 0 1.5rem;
+            min-height: 50px;
+        }
+        .navbar-upds-real .nav-link {
+            color: #ffffff !important;
+            font-size: 13px;
+            opacity: 0.9;
+            padding: 0.5rem 0.8rem !important;
+        }
+        .navbar-upds-real .nav-link:hover {
+            opacity: 1;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .navbar-upds-real .nav-link.active {
+            font-weight: bold;
+            opacity: 1;
+        }
+
+        /* CAJÓN 0: CONTENEDOR DE NOTIFICACIONES CRÍTICAS EN NAVBAR */
+        .contenedor-notif-navbar {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            padding: 0 0.5rem;
+        }
+        .icono-notif-campana {
+            color: #ffffff;
+            font-size: 16px;
+            opacity: 0.9;
+            transition: opacity 0.2s;
+        }
+        .icono-notif-campana:hover {
+            opacity: 1;
+        }
+        /* Punto rojo plano que indica urgencia crítica activa */
+        .badge-urgencia-real {
+            position: absolute;
+            top: -2px;
+            right: 2px;
+            width: 8px;
+            height: 8px;
+            background-color: #dc3545;
+            border-radius: 50%;
+            border: 1px solid var(--azul-upds-institucional);
+        }
+
+        /* TARJETA COMPACTA SIN LÍNEAS DE COLOR SUPERIORES */
+        .tarjeta-estilo-upds {
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            background-color: #ffffff;
+        }
+
+        /* PESTAÑAS (TABS) SUPERIORES MINIMALISTAS CON BORDES PLANOS */
+        .nav-tabs-upds {
+            border-bottom: 2px solid #eef2f5;
+        }
+        .nav-tabs-upds .nav-link {
+            border: none;
+            color: #555555;
+            font-size: 13.5px;
+            font-weight: 500;
+            padding: 0.6rem 1.2rem;
+            border-radius: 0;
+            background: none;
+            transition: color 0.15s;
+        }
+        .nav-tabs-upds .nav-link:hover {
+            color: var(--azul-upds-institucional);
+            border-bottom: 2px solid #bcd0e4;
+        }
+        .nav-tabs-upds .nav-link.active {
+            color: var(--azul-upds-institucional) !important;
+            font-weight: bold;
+            border-bottom: 2px solid var(--azul-upds-institucional) !important;
+            background: none !important;
+        }
+
+        /* TABLAS COMPACTAS Y LIMPIAS ESTÁNDAR UPDS */
+        .tabla-limpia th {
+            background-color: #fdfdfd;
+            color: #555555;
+            font-weight: 600;
+            border-bottom: 2px solid #eef2f5;
+        }
+
+        /* CONFIGURACIÓN PLANA REAL PARA LAS PAGINACIONES */
+        .seccion-paginacion-real {
+            font-family: Arial, sans-serif;
+        }
+        .texto-contador-real {
+            color: var(--gris-paginacion);
+            font-size: 13px;
+        }
+        .caja-paginacion-real {
+            display: flex;
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 0;
+            border-radius: 0;
+        }
+        .caja-paginacion-real .item-real .enlace-real {
+            display: block;
+            padding: 6px 12px;
+            font-size: 13px;
+            text-decoration: none;
+            border: 1px solid var(--borde-cajas);
+            background-color: #ffffff;
+        }
+        .caja-paginacion-real .item-real.texto-btn .enlace-real {
+            color: #2b7bc5;
+        }
+        .caja-paginacion-real .item-real.disabled .enlace-real {
+            color: #bcbcbc;
+            cursor: not-allowed;
+        }
+        .caja-paginacion-real .item-real.active .enlace-real {
+            background-color: #2b7bc5;
+            border-color: #2b7bc5;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body class="d-flex flex-column vh-100 overflow-hidden bg-white">
+    <!-- NAV BAR SUPERIOR CORPORATIVO UNIFICADO -->
+    <nav class="navbar navbar-expand-xl navbar-upds-real shadow-sm flex-shrink-0">
+        <div class="container-fluid px-3 px-xl-4">
+            <a class="navbar-brand fw-bold text-white text-decoration-none me-4" href="index_admin.php">UPDS</a>
+
+            <div class="collapse navbar-collapse" id="navegacionAdmin">
+                <ul class="navbar-nav me-auto mb-2 mb-xl-0">
+                    <li class="nav-item"><a class="nav-link" href="index_admin.php">Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link" href="usuarios_listar.php">Gestión de Usuarios</a></li>
+                    <li class="nav-item"><a class="nav-link" href="mg_importar.html">Importación SATS</a></li>
+                    <li class="nav-item"><a class="nav-link active" aria-current="page" href="cohortes_listar.html">Periodos y Cohortes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="mg_parametros.html">Parámetros del Sistema</a></li>
+                    <li class="nav-item"><a class="nav-link" href="auditoria_bitacora.html">Bitácora de Auditoría</a></li>
+                    <li class="nav-item"><a class="nav-link" href="defensas_agenda.html">Cronograma</a></li>
+                </ul>
+
+                <!-- Bloque de Sesión del Administrador + Campana del Cajón 0 -->
+                <div class="d-flex align-items-center gap-3 text-white">
+                    
+                    <!-- CAJÓN 0: Notificación Crítica Integrada -->
+                    <div class="contenedor-notif-navbar me-1">
+                        <a href="mg_alertas.html" class="icono-notif-campana" title="Ver alertas críticas activas">
+                            <i class="fa-solid fa-bell fs-5"></i>
+                            <span class="badge-urgencia-real"></span>
+                        </a>
+                    </div>
+
+                    <div class="text-end lh-sm d-none d-sm-block">
+                        <span class="d-block fw-semibold small">Jonathan Arturo</span>
+                        <span class="d-block text-white-50 small" style="font-size: 11px;">j.jonathan.delariva.m@upds.edu.bo</span>
+                    </div>
+                    <img src="https://upds.edu.bo" class="rounded-circle border border-white-50" alt="Avatar" width="35" height="35">
+                    <span class="text-white-50 mx-1">|</span>
+                    <a class="text-white text-decoration-none fw-semibold small" href="../index.php">
+                        Salir <i class="fa-solid fa-arrow-right-from-bracket ms-1" style="font-size: 11px;"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ÁREA DE CONTENIDO CENTRAL RESTRINGIDA A 1000PX -->
+    <main class="flex-grow-1 overflow-auto py-4">
+        <div class="container-fluid mx-auto" style="max-width: 1000px;">
+            
+            <!-- Encabezado de Ubicación de la Pantalla -->
+            <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
+                <div>
+                    <h1 class="h3 fw-light text-secondary mb-0">
+                        Estructuras Académicas <span class="fs-6 text-muted fw-normal">/ periodos, cohortes y oferta</span>
+                    </h1>
+                </div>
+                <nav aria-label="Migas de pan">
+                    <ol class="breadcrumb mb-0 small text-muted">
+                        <li class="breadcrumb-item"><a href="index_admin.php" class="text-decoration-none text-muted">Inicio</a></li>
+                        <li class="breadcrumb-item active text-dark" aria-current="page">Periodos y Cohortes</li>
+                    </ol>
+                </nav>
+            </header>
+
+            <!-- Contenedor Dinámico para Notificaciones/Mensajes del Servidor -->
+            <div id="mensajeAplicacion" class="mb-3" aria-live="polite"></div>
+
+            <!-- ENLACES DE LAS 3 PESTAÑAS SUPERIORES DE TU DISEÑO -->
+            <ul class="nav nav-tabs nav-tabs-upds mb-4" id="pestanasCajonDos" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="tab-estructuras" data-bs-toggle="tab" data-bs-target="#panel-estructuras" type="button" role="tab" aria-controls="panel-estructuras" aria-selected="true">
+                        <i class="fa-regular fa-calendar me-2"></i>Periodos y Cohortes
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab-oferta" data-bs-toggle="tab" data-bs-target="#panel-oferta" type="button" role="tab" aria-controls="panel-oferta" aria-selected="false">
+                        <i class="fa-solid fa-graduation-cap me-2"></i>Oferta Universitaria
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab-expedientes" data-bs-toggle="tab" data-bs-target="#panel-expedientes" type="button" role="tab" aria-controls="panel-expedientes" aria-selected="false">
+                        <i class="fa-solid fa-folder-open me-2"></i>Expedientes de Grado
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="contenidoCajonDos">
+                <!-- PESTAÑA 1: PERIODOS Y COHORTES (CON SELECTOR DINÁMICO) -->
+                <section class="tab-pane fade show active" id="panel-estructuras" role="tabpanel" aria-labelledby="tab-estructuras" tabindex="0">
+                    <div class="card border tarjeta-estilo-upds p-4 mb-4">
+                        
+                        <div class="mb-3">
+                            <h2 class="h5 fw-bold text-dark mb-1">Estructuras Temporales de la Sede</h2>
+                            <p class="text-muted small mb-0">Conmute y administre las ventanas de tiempo mensuales o los lotes estacionales de estudiantes.</p>
+                        </div>
+
+                        <!-- MODIFICACIÓN: Selector dinámico plano para alternar entre ver Periodos o Cohortes -->
+                        <div class="mb-4">
+                            <button type="button" class="btn btn-sm btn-primary active fw-semibold me-1" id="botonVerPeriodos" aria-pressed="true" style="font-size: 12px;">Ver Periodos de Tutoría</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary fw-semibold" id="botonVerCohortes" aria-pressed="false" style="font-size: 12px;">Ver Cohortes de Grado</button>
+                        </div>
+
+                        <!-- SUB-SECCIÓN A: TABLA DE PERIODOS DE TUTORÍA -->
+                        <section id="seccionPeriodos" class="d-block" aria-labelledby="botonVerPeriodos">
+                            <div class="row align-items-center g-3 mb-3">
+                                <div class="col-12 col-md-8">
+                                    <h3 class="h6 fw-bold text-secondary mb-0"><i class="fa-regular fa-calendar-check me-1"></i> Módulos de Reforzamiento</h3>
+                                </div>
+                                <div class="col-12 col-md-4 text-md-end" id="contenedorBotonNuevoPeriodo">
+                                    <button type="button" class="btn btn-primary btn-sm fw-semibold" data-abrir-formulario="periodo" style="font-size: 12px;">
+                                        + Nuevo Periodo
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Contenedor de la Tabla de Periodos -->
+                            <div id="contenedorTablaPeriodos">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle table-sm limpia mb-0" id="tablaPeriodos" style="font-size: 13px;">
+                                        <thead class="tabla-limpia">
+                                            <tr>
+                                                <th scope="col" class="py-2 px-3">Código</th>
+                                                <th scope="col" class="py-2 px-3">Nombre del periodo</th>
+                                                <th scope="col" class="py-2 px-3">Fecha de inicio</th>
+                                                <th scope="col" class="py-2 px-3">Fecha de cierre</th>
+                                                <th scope="col" class="py-2 px-3">Estado</th>
+                                                <th scope="col" class="py-2 px-3 text-center">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr data-registro-id="1" data-codigo="PER-2026-M1" data-nombre="Módulo I - Gestión 2026" data-fecha-inicio="2026-03-02" data-fecha-fin="2026-03-27" data-estado="activo">
+                                                <td class="text-secondary py-2 px-3">PER-2026-M1</td>
+                                                <td class="fw-bold text-dark py-2 px-3">Módulo I - Gestión 2026</td>
+                                                <td class="py-2 px-3">02/03/2026</td>
+                                                <td class="py-2 px-3">27/03/2026</td>
+                                                <td class="py-2 px-3"><span class="badge bg-success px-2">Activo</span></td>
+                                                <td class="text-center py-2 px-3">
+                                                    <!-- MODIFICACIÓN: Acciones CRUD en Periodos -->
+                                                    <button type="button" class="btn btn-outline-primary btn-sm fw-semibold py-0 px-2 me-1" data-editar-registro="periodo" style="font-size: 11px;">Editar</button>
+                                                    <button type="button" class="btn btn-outline-danger btn-sm fw-semibold py-0 px-2" data-borrar-registro="periodo" style="font-size: 11px;">Borrar</button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <!-- Formulario inyectado en caliente por JS -->
+                            <div id="formularioPeriodo" class="d-none" aria-live="polite"></div>
+                        </section>
+
+                        <!-- SUB-SECCIÓN B: TABLA DE COHORTES DE GRADO -->
+                        <section id="seccionCohortes" class="d-none" aria-labelledby="botonVerCohortes">
+                            <div class="row align-items-center g-3 mb-3">
+                                <div class="col-12 col-md-8">
+                                    <h3 class="h6 fw-bold text-secondary mb-0"><i class="fa-solid fa-layer-group me-1"></i> Cohortes Vigentes</h3>
+                                </div>
+                                <div class="col-12 col-md-4 text-md-end" id="contenedorBotonNuevoCohorte">
+                                    <button type="button" class="btn btn-primary btn-sm fw-semibold" data-abrir-formulario="cohorte" style="font-size: 12px;">
+                                        + Nueva Cohorte
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Contenedor de la Tabla de Cohortes -->
+                            <div id="contenedorTablaCohortes">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle table-sm limpia mb-0" id="tablaCohortes" style="font-size: 13px;">
+                                        <thead class="tabla-limpia">
+                                            <tr>
+                                                <th scope="col" class="py-2 px-3">Código</th>
+                                                <th scope="col" class="py-2 px-3">Denominación del grupo</th>
+                                                <th scope="col" class="py-2 px-3">Inicio</th>
+                                                <th scope="col" class="py-2 px-3">Estudiantes aptos</th>
+                                                <th scope="col" class="py-2 px-3">Estado operativo</th>
+                                                <th scope="col" class="py-2 px-3 text-center">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr data-registro-id="45" data-codigo="G1-2026-03" data-nombre="Grupo 1 - Marzo 2026" data-fecha-inicio="2026-03-02" data-fecha-fin="" data-estudiantes="50" data-activa="1">
+                                                <td class="text-secondary py-2 px-3">G1-2026-03</td>
+                                                <td class="fw-bold text-dark py-2 px-3">Grupo 1 - Marzo 2026</td>
+                                                <td class="py-2 px-3">Marzo 2026</td>
+                                                <td class="text-primary fw-bold py-2 px-3">50 estudiantes</td>
+                                                <td class="py-2 px-3"><span class="badge bg-success px-2">Habilitada</span></td>
+                                                <td class="text-center py-2 px-3">
+                                                    <!-- MODIFICACIÓN: Acciones CRUD en Cohortes -->
+                                                    <button type="button" class="btn btn-outline-primary btn-sm fw-semibold py-0 px-2 me-1" data-editar-registro="cohorte" style="font-size: 11px;">Editar</button>
+                                                    <button type="button" class="btn btn-outline-danger btn-sm fw-semibold py-0 px-2" data-borrar-registro="cohorte" style="font-size: 11px;">Borrar</button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                                               <!-- Paginación plana real de la tabla de cohortes -->
+                                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 border-top mt-3 pt-3 seccion-paginacion-real">
+                                    <div class="texto-contador-real">Mostrando registros del 1 al 1 de 1 cohorte</div>
+                                    <nav aria-label="Paginación de cohortes">
+                                        <ul class="caja-paginacion-real">
+                                            <li class="item-real disabled texto-btn"><a class="enlace-real" href="#">Anterior</a></li>
+                                            <li class="item-real active"><a class="enlace-real" href="#">1</a></li>
+                                            <li class="item-real disabled texto-btn"><a class="enlace-real" href="#">Siguiente</a></li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+                            <div id="formularioCohorte" class="d-none" aria-live="polite"></div>
+                        </section>
+
+                    </div>
+                </section>
+
+                <!-- PESTAÑA 2: OFERTA UNIVERSITARIA (CARRERAS VS MATERIAS CON FILTROS Y CRUD) -->
+                <section class="tab-pane fade" id="panel-oferta" role="tabpanel" aria-labelledby="tab-oferta" tabindex="0">
+                    <article class="card border tarjeta-estilo-upds p-4 mb-4">
+                        <div class="mb-3">
+                            <h2 class="h5 fw-bold text-dark mb-1">Catálogo de Carreras y Materias Ofertadas</h2>
+                            <p class="text-muted small mb-0">Consulte y conmute entre los programas académicos y sus asignaturas vinculadas.</p>
+                        </div>
+
+                        <!-- COMENTARIO: Selector dinámico plano para alternar catálogos mediante JS -->
+                        <div class="mb-4">
+                            <button type="button" class="btn btn-sm btn-primary active fw-semibold me-1" id="botonVerCarreras" aria-pressed="true" style="font-size: 12px;">Ver Carreras</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary fw-semibold" id="botonVerMaterias" aria-pressed="false" style="font-size: 12px;">Ver Materias</button>
+                        </div>
+
+                        <!-- SUB-SECCIÓN A: CATÁLOGO DE CARRERAS -->
+                        <section id="catalogoCarreras" class="d-block" aria-labelledby="botonVerCarreras">
+                            <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
+                                <h3 class="h6 fw-bold text-secondary mb-0"><i class="fa-solid fa-graduation-cap me-1"></i> Programas Académicos</h3>
+                                <button type="button" class="btn btn-outline-primary btn-sm fw-semibold" style="font-size: 11px;">+ Nueva Carrera</button>
+                            </div>
+
+                            <!-- MODIFICACIÓN: Buscador predictivo exclusivo para Carreras por JS -->
+                            <div class="row g-3 mb-4 p-3 bg-light rounded border">
+                                <div class="col-12">
+                                    <label for="buscadorCarreras" class="form-label small fw-bold text-secondary">Buscar carrera por nombre o sigla</label>
+                                    <input type="text" class="form-control form-control-sm" id="buscadorCarreras" placeholder="Escriba la carrera a buscar..." autocomplete="off">
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle table-sm limpia mb-0" id="tablaCarreras" style="font-size: 13px;">
+                                    <thead class="tabla-limpia">
+                                        <tr>
+                                            <th scope="col" class="py-2 px-3">Sigla</th>
+                                            <th scope="col" class="py-2 px-3">Nombre de carrera</th>
+                                            <th scope="col" class="py-2 px-3">Estado</th>
+                                            <th scope="col" class="py-2 px-3 text-center">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr data-carrera-id="1" data-carrera-sigla="ING-SIS" data-carrera-nombre="Ingeniería de Sistemas">
+                                            <td class="text-secondary py-2 px-3" data-sigla-carrera>ING-SIS</td>
+                                            <td class="fw-bold text-dark py-2 px-3" data-nombre-carrera>Ingeniería de Sistemas</td>
+                                            <td class="py-2 px-3"><span class="badge bg-success px-2">Activa</span></td>
+                                            <td class="text-center py-2 px-3">
+                                                <!-- MODIFICACIÓN: Acciones CRUD en Carreras -->
+                                                <button type="button" class="btn btn-outline-primary btn-sm fw-semibold py-0 px-2 me-1" data-editar-registro="carrera" style="font-size: 11px;">Editar</button>
+                                                <button type="button" class="btn btn-outline-danger btn-sm fw-semibold py-0 px-2" data-borrar-registro="carrera" style="font-size: 11px;">Borrar</button>
+                                            </td>
+                                        </tr>
+                                        <tr data-carrera-id="2" data-carrera-sigla="ADM" data-carrera-nombre="Administración de Empresas">
+                                            <td class="text-secondary py-2 px-3" data-sigla-carrera>ADM</td>
+                                            <td class="fw-bold text-dark py-2 px-3" data-nombre-carrera>Administración de Empresas</td>
+                                            <td class="py-2 px-3"><span class="badge bg-success px-2">Activa</span></td>
+                                            <td class="text-center py-2 px-3">
+                                                <!-- MODIFICACIÓN: Acciones CRUD en Carreras -->
+                                                <button type="button" class="btn btn-outline-primary btn-sm fw-semibold py-0 px-2 me-1" data-editar-registro="carrera" style="font-size: 11px;">Editar</button>
+                                                <button type="button" class="btn btn-outline-danger btn-sm fw-semibold py-0 px-2" data-borrar-registro="carrera" style="font-size: 11px;">Borrar</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- MODIFICACIÓN: Paginación plana real para la tabla de carreras -->
+                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 border-top mt-3 pt-3 seccion-paginacion-real">
+                                <div class="texto-contador-real">Mostrando registros del 1 al 2 de 2 carreras</div>
+                                <nav aria-label="Paginación de carreras">
+                                    <ul class="caja-paginacion-real">
+                                        <li class="item-real disabled texto-btn"><a class="enlace-real" href="#">Anterior</a></li>
+                                        <li class="item-real active"><a class="enlace-real" href="#">1</a></li>
+                                        <li class="item-real disabled texto-btn"><a class="enlace-real" href="#">Siguiente</a></li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </section>
+
+                        <!-- SUB-SECCIÓN B: CATÁLOGO DE MATERIAS CON FILTROS AVANZADOS CRUZADOS -->
+                        <section id="catalogoMaterias" class="d-none" aria-labelledby="botonVerMaterias">
+                            <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
+                                <h3 class="h6 fw-bold text-secondary mb-0"><i class="fa-solid fa-book me-1"></i> Asignaturas Vinculadas</h3>
+                                <button type="button" class="btn btn-outline-primary btn-sm fw-semibold" style="font-size: 11px;">+ Nueva Materia</button>
+                            </div>
+
+                            <!-- COMENTARIO: Componentes del Filtro Cruzado que operarán con JS -->
+                            <div class="row g-3 mb-4 p-3 bg-light rounded border">
+                                <div class="col-12 col-md-6">
+                                    <label for="buscadorMaterias" class="form-label small fw-bold text-secondary">Buscar materia por nombre</label>
+                                    <input type="text" class="form-control form-control-sm" id="buscadorMaterias" placeholder="Escriba la asignatura a buscar..." autocomplete="off">
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <label for="filtroCarreras" class="form-label small fw-bold text-secondary">Filtrar por Carrera Universitaria</label>
+                                    <select class="form-select form-select-sm" id="filtroCarreras">
+                                        <option value="">Ver todas las materias</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle table-sm limpia mb-0" id="tablaMaterias" style="font-size: 13px;">
+                                    <thead class="tabla-limpia">
+                                        <tr>
+                                            <th scope="col" class="py-2 px-3">Código</th>
+                                            <th scope="col" class="py-2 px-3">Asignatura</th>
+                                            <th scope="col" class="py-2 px-3">Carrera vinculada</th>
+                                            <th scope="col" class="py-2 px-3">Estado</th>
+                                            <th scope="col" class="py-2 px-3 text-center">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr data-carrera-id="1" data-materia-id="10" data-materia-codigo="SIS-411" data-materia-nombre="Taller de Grado I">
+                                            <td class="text-secondary py-2 px-3">SIS-411</td>
+                                            <td class="fw-bold text-dark py-2 px-3" data-nombre-materia>Taller de Grado I</td>
+                                            <td class="text-muted py-2 px-3">Ingeniería de Sistemas</td>
+                                            <td class="py-2 px-3"><span class="badge bg-success px-2">Activa</span></td>
+                                            <td class="text-center py-2 px-3">
+                                                <!-- MODIFICACIÓN: Acciones CRUD en Materias -->
+                                                <button type="button" class="btn btn-outline-primary btn-sm fw-semibold py-0 px-2 me-1" data-editar-registro="materia" style="font-size: 11px;">Editar</button>
+                                                <button type="button" class="btn btn-outline-danger btn-sm fw-semibold py-0 px-2" data-borrar-registro="materia" style="font-size: 11px;">Borrar</button>
+                                            </td>
+                                        </tr>
+                                        <tr data-carrera-id="1" data-materia-id="11" data-materia-codigo="SIS-412" data-materia-nombre="Taller de Grado II">
+                                            <td class="text-secondary py-2 px-3">SIS-412</td>
+                                            <td class="fw-bold text-dark py-2 px-3" data-nombre-materia>Taller de Grado II</td>
+                                            <td class="text-muted py-2 px-3">Ingeniería de Sistemas</td>
+                                            <td class="py-2 px-3"><span class="badge bg-success px-2">Activa</span></td>
+                                            <td class="text-center py-2 px-3">
+                                                <!-- MODIFICACIÓN: Acciones CRUD en Materias -->
+                                                <button type="button" class="btn btn-outline-primary btn-sm fw-semibold py-0 px-2 me-1" data-editar-registro="materia" style="font-size: 11px;">Editar</button>
+                                                <button type="button" class="btn btn-outline-danger btn-sm fw-semibold py-0 px-2" data-borrar-registro="materia" style="font-size: 11px;">Borrar</button>
+                                            </td>
+                                        </tr>
+                                        <tr data-carrera-id="2" data-materia-id="12" data-materia-codigo="ADM-210" data-materia-nombre="Administración Financiera">
+                                            <td class="text-secondary py-2 px-3">ADM-210</td>
+                                            <td class="fw-bold text-dark py-2 px-3" data-nombre-materia>Administración Financiera</td>
+                                            <td class="text-muted py-2 px-3">Administración de Empresas</td>
+                                            <td class="py-2 px-3"><span class="badge bg-success px-2">Activa</span></td>
+                                            <td class="text-center py-2 px-3">
+                                                <!-- MODIFICACIÓN: Acciones CRUD en Materias -->
+                                                <button type="button" class="btn btn-outline-primary btn-sm fw-semibold py-0 px-2 me-1" data-editar-registro="materia" style="font-size: 11px;">Editar</button>
+                                                <button type="button" class="btn btn-outline-danger btn-sm fw-semibold py-0 px-2" data-borrar-registro="materia" style="font-size: 11px;">Borrar</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p id="mensajeSinMaterias" class="alert alert-info mt-3 mb-0 d-none small fw-semibold" role="status">
+                                <i class="fa-solid fa-circle-info me-1"></i> No hay materias que coincidan con los filtros aplicados.
+                            </p>
+
+                            <!-- MODIFICACIÓN: Paginación plana real para la tabla de materias -->
+                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 border-top mt-3 pt-3 seccion-paginacion-real">
+                                <div class="texto-contador-real">Mostrando registros del 1 al 3 de 3 materias</div>
+                                <nav aria-label="Paginación de materias">
+                                    <ul class="caja-paginacion-real">
+                                        <li class="item-real disabled texto-btn"><a class="enlace-real" href="#">Anterior</a></li>
+                                        <li class="item-real active"><a class="enlace-real" href="#">1</a></li>
+                                        <li class="item-real disabled texto-btn"><a class="enlace-real" href="#">Siguiente</a></li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </section>
+                    </article>
+                </section>
+                                <!-- PESTAÑA 3: SEGUIMIENTO DE EXPEDIENTES DE GRADO (CON ACCIONES CRUD) -->
+                <section class="tab-pane fade" id="panel-expedientes" role="tabpanel" aria-labelledby="tab-expedientes" tabindex="0">
+                    <article class="card border tarjeta-estilo-upds p-4 mb-4">
+                        <div class="row align-items-center g-3 mb-3">
+                            <div class="col-12 col-md-8">
+                                <h2 class="h5 fw-bold text-dark mb-1">Seguimiento de Expedientes de Grado</h2>
+                                <p class="text-muted small mb-0">Monitoreo, promoción y control administrativo de las fases cronológicas de titulación.</p>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <input type="search" class="form-control form-control-sm" id="buscarExpediente" placeholder="🔍 Buscar estudiante o trabajo...">
+                            </div>
+                        </div>
+
+                        <!-- Filtros planos de fase unificados para JavaScript -->
+                        <div class="d-flex flex-wrap gap-1 mb-3">
+                            <button type="button" class="btn btn-outline-primary btn-sm active fw-semibold" data-filtro-etapa="todas" aria-pressed="true" style="font-size: 11.5px;">Todos</button>
+                            <button type="button" class="btn btn-outline-primary btn-sm fw-semibold" data-filtro-etapa="mg1" aria-pressed="false" style="font-size: 11.5px;">Fase Perfil (MG1)</button>
+                            <button type="button" class="btn btn-outline-primary btn-sm fw-semibold" data-filtro-etapa="mg2" aria-pressed="false" style="font-size: 11.5px;">Fase Borrador (MG2)</button>
+                            <button type="button" class="btn btn-outline-primary btn-sm fw-semibold" data-filtro-etapa="finalizado" aria-pressed="false" style="font-size: 11.5px;">Finalizado / Aprobado</button>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle table-sm limpia mb-0" id="tablaExpedientes" style="font-size: 13px;">
+                                <thead class="tabla-limpia">
+                                    <tr>
+                                        <th scope="col" class="py-2 px-3">Estudiante</th>
+                                        <th scope="col" class="py-2 px-3">Trabajo / Modalidad</th>
+                                        <th scope="col" class="py-2 px-3">Tutor designado</th>
+                                        <th scope="col" class="py-2 px-3">Etapa actual</th>
+                                        <th scope="col" class="py-2 px-3 text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr data-etapa="mg1" data-registro-id="101" data-codigo="EXP-MA-01" data-estudiante-nombre="María Condori Choque">
+                                        <td class="fw-bold text-dark py-2 px-3">María Condori Choque <span class="d-block text-muted fw-normal" style="font-size: 11px;">RU-2026-30214</span></td>
+                                        <td class="text-muted py-2 px-3">Desarrollo de un sistema web de seguimiento <span class="d-block text-secondary fw-semibold" style="font-size: 11px;">Proyecto de Grado</span></td>
+                                        <td class="text-dark py-2 px-3">Ing. Carlos García</td>
+                                        <td class="py-2 px-3"><span class="badge bg-primary px-2">Fase Perfil (MG1)</span></td>
+                                        <td class="text-center py-2 px-3">
+                                            <!-- MODIFICACIÓN: Acciones CRUD en Expedientes -->
+                                            <button type="button" class="btn btn-outline-primary btn-sm fw-semibold py-0 px-2 me-1" data-editar-registro="expediente" style="font-size: 11px;">Editar</button>
+                                            <button type="button" class="btn btn-outline-danger btn-sm fw-semibold py-0 px-2" data-borrar-registro="expediente" style="font-size: 11px;">Borrar</button>
+                                        </td>
+                                    </tr>
+                                    <tr data-etapa="mg2" data-registro-id="102" data-codigo="EXP-JU-02" data-estudiante-nombre="Juan Pérez Flores">
+                                        <td class="fw-bold text-dark py-2 px-3">Juan Pérez Flores <span class="d-block text-muted fw-normal" style="font-size: 11px;">RU-2026-30450</span></td>
+                                        <td class="text-muted py-2 px-3">Sistema de control académico <span class="d-block text-secondary fw-semibold" style="font-size: 11px;">Tesis</span></td>
+                                        <td class="text-dark py-2 px-3">Ing. Ana Rojas</td>
+                                        <td class="py-2 px-3"><span class="badge bg-warning text-dark px-2">Fase Borrador (MG2)</span></td>
+                                        <td class="text-center py-2 px-3">
+                                            <!-- MODIFICACIÓN: Acciones CRUD en Expedientes -->
+                                            <button type="button" class="btn btn-outline-primary btn-sm fw-semibold py-0 px-2 me-1" data-editar-registro="expediente" style="font-size: 11px;">Editar</button>
+                                            <button type="button" class="btn btn-outline-danger btn-sm fw-semibold py-0 px-2" data-borrar-registro="expediente" style="font-size: 11px;">Borrar</button>
+                                        </td>
+                                    </tr>
+                                    <tr data-etapa="finalizado" data-registro-id="103" data-codigo="EXP-LU-03" data-estudiante-nombre="Lucía Flores Vargas">
+                                        <td class="fw-bold text-dark py-2 px-3">Lucía Flores Vargas <span class="d-block text-muted fw-normal" style="font-size: 11px;">RU-2025-29771</span></td>
+                                        <td class="text-muted py-2 px-3">Plataforma de gestión universitaria <span class="d-block text-secondary fw-semibold" style="font-size: 11px;">Proyecto de Grado</span></td>
+                                        <td class="text-dark py-2 px-3">Ing. Mario Salinas</td>
+                                        <td class="py-2 px-3"><span class="badge bg-success px-2">Finalizado / Aprobado</span></td>
+                                        <td class="text-center py-2 px-3">
+                                            <!-- MODIFICACIÓN: Acciones CRUD en Expedientes -->
+                                            <button type="button" class="btn btn-outline-primary btn-sm fw-semibold py-0 px-2 me-1" data-editar-registro="expediente" style="font-size: 11px;">Editar</button>
+                                            <button type="button" class="btn btn-outline-danger btn-sm fw-semibold py-0 px-2" data-borrar-registro="expediente" style="font-size: 11px;">Borrar</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- MODIFICACIÓN: Paginación plana real para la tabla de expedientes -->
+                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 border-top mt-3 pt-3 seccion-paginacion-real">
+                            <div class="texto-contador-real">Mostrando registros del 1 al 3 de 3 expedientes</div>
+                            <nav aria-label="Paginación de expedientes">
+                                <ul class="caja-paginacion-real">
+                                    <li class="item-real disabled texto-btn"><a class="enlace-real" href="#">Anterior</a></li>
+                                    <li class="item-real active"><a class="enlace-real" href="#">1</a></li>
+                                    <li class="item-real disabled texto-btn"><a class="enlace-real" href="#">Siguiente</a></li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </article>
+                </section>
+            </div> <!-- Cierre de tab-content -->
+
+            <!-- Sección inferior informativa unificada -->
+            <div class="d-flex justify-content-between align-items-center mx-auto mt-4 pt-1 shadow-none" style="max-width: 1000px;">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-light border text-secondary rounded-pill" style="font-size: 10px;">Estructura Académica</span>
+                    <span class="text-secondary" style="font-size: 12px;">Catálogos y cohortes activos de demostración regulados por las 36 tablas base.</span>
+                </div>
+                <div>
+                    <a class="text-decoration-none small text-muted text-hover-dark fw-semibold" href="auditoria_bitacora.html" style="font-size: 12px; border-bottom: 1px dashed #bbb;">
+                        <i class="fa-solid fa-clock-history me-1"></i> Auditoría de cambios estructurales
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER INSTITUCIONAL DE TU REFERENCIA -->
+    <footer class="flex-shrink-0 border-top bg-white mt-auto">
+        <div class="container-fluid mx-auto py-3" style="max-width: 1000px;">
+            <p class="small text-secondary mb-0">
+                UPDS.NET v5.1 © 2026 - Desarrollado por la Universidad Privada Domingo Savio.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5.3 JS Bundle Oficial -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+    <script>
+        (() => {
+            "use strict";
+
+            // COMENTARIO: Mapa de configuración maestro que estructura los campos nativos de los formularios CRUD
+            const formularios = {
+                periodo: {
+                    contenedor: document.getElementById("formularioPeriodo"),
+                    tabla: document.getElementById("contenedorTablaPeriodos"),
+                    btnNuevo: document.getElementById("contenedorBotonNuevoPeriodo"),
+                    titulo: "periodo",
+                    campos: [
+                        { nombre: "codigo", etiqueta: "Código del Periodo", tipo: "text", requerido: true },
+                        { nombre: "nombre", etiqueta: "Nombre del periodo académico", tipo: "text", requerido: true },
+                        { nombre: "fecha_inicio", etiqueta: "Fecha de inicio de clases", tipo: "date", requerido: true },
+                        { nombre: "fecha_fin", etiqueta: "Fecha de cierre de actas", tipo: "date", requerido: true },
+                        {
+                            nombre: "estado",
+                            etiqueta: "Estado Operativo",
+                            tipo: "select",
+                            requerido: true,
+                            opciones: [
+                                { valor: "activo", etiqueta: "Activo" },
+                                { valor: "inactivo", etiqueta: "Inactivo" }
+                            ]
+                        }
+                    ]
+                },
+                cohorte: {
+                    contenedor: document.getElementById("formularioCohorte"),
+                    tabla: document.getElementById("contenedorTablaCohortes"),
+                    btnNuevo: document.getElementById("contenedorBotonNuevoCohorte"),
+                    titulo: "cohorte",
+                    campos: [
+                        { nombre: "codigo", etiqueta: "Código de Cohorte", tipo: "text", requerido: true },
+                        { nombre: "nombre", etiqueta: "Denominación del grupo de tesis", tipo: "text", requerido: true },
+                        { nombre: "fecha_inicio", etiqueta: "Fecha de inicio del ciclo", tipo: "date", requerido: true },
+                        { nombre: "fecha_fin", etiqueta: "Fecha de cierre reglamentaria (opcional)", tipo: "date", requerido: false },
+                        { nombre: "estudiantes", etiqueta: "Cantidad de estudiantes aptos registrados", tipo: "number", requerido: false },
+                        {
+                            nombre: "activa",
+                            etiqueta: "Estado de Habilitación",
+                            tipo: "select",
+                            requerido: true,
+                            opciones: [
+                                { valor: "1", etiqueta: "Habilitada" },
+                                { valor: "0", etiqueta: "Inactiva" }
+                            ]
+                        }
+                    ]
+                }
+            };
+
+            // COMENTARIO: Estado de memoria volátil de la interfaz en caliente para las fases de grado
+            const estadoInterfaz = {
+                filtroEtapa: "todas"
+            };
+
+            // COMENTARIO: Función constructora de nodos del DOM para pintar los inputs del formulario dinámico
+            function crearCampo(campo, valores = {}) {
+                const grupo = document.createElement("div");
+                grupo.className = "col-12 col-md-6 mb-2 text-start";
+
+                const etiqueta = document.createElement("label");
+                etiqueta.className = "form-label small fw-bold text-secondary mb-1";
+                etiqueta.htmlFor = `${campo.nombre}Formulario`;
+                etiqueta.textContent = campo.etiqueta;
+
+                let control;
+                if (campo.tipo === "select") {
+                    control = document.createElement("select");
+                    control.className = "form-select form-select-sm";
+
+                    campo.opciones.forEach((opcion) => {
+                        const elementoOpcion = document.createElement("option");
+                        elementoOpcion.value = opcion.valor;
+                        elementoOpcion.textContent = opcion.etiqueta;
+                        control.appendChild(elementoOpcion);
+                    });
+                } else {
+                    control = document.createElement("input");
+                    control.type = campo.tipo;
+                    control.className = "form-control form-control-sm";
+                    if (campo.tipo === "number") {
+                        control.min = "0";
+                    }
+                }
+
+                control.id = `${campo.nombre}Formulario`;
+                control.name = campo.nombre;
+                control.required = campo.requerido;
+                control.value = valores[campo.nombre] ?? ""; // COMENTARIO: Inyecta valor leído si es edición
+                grupo.append(etiqueta, control);
+
+                return grupo;
+            }
+            // COMENTARIO: Función que levanta dinámicamente el contenedor del formulario POST en la misma página
+            function crearFormulario(tipo, modo, fila = null) {
+                const configuracion = formularios[tipo];
+                const formulario = document.createElement("form");
+                formulario.method = "POST";
+                formulario.action = "procesar_cohortes.php"; // COMENTARIO: Backend de inserción segura
+                formulario.className = "border rounded p-4 bg-light shadow-sm mb-2";
+                formulario.dataset.tipoRegistro = tipo;
+
+                const titulo = document.createElement("h3");
+                titulo.className = "h6 fw-bold text-dark border-bottom pb-2 mb-3";
+                titulo.innerHTML = `<i class="fa-solid fa-file-pen text-muted me-1"></i> ${modo === "editar" ? "Modificar" : "Registrar"} ${configuracion.titulo.toUpperCase()}`;
+
+                // COMENTARIO: Parámetro oculto de acción para indicarle al backend si crea o actualiza
+                const campoAccion = document.createElement("input");
+                campoAccion.type = "hidden";
+                campoAccion.name = "accion";
+                campoAccion.value = modo === "editar" ? "actualizar" : "crear";
+                formulario.appendChild(campoAccion);
+
+                // COMENTARIO: REGLA MANDATORIA: Campo oculto ID para resguardo de la edición POST segura
+                if (modo === "editar" && fila) {
+                    const campoId = document.createElement("input");
+                    campoId.type = "hidden";
+                    campoId.name = "id_registro";
+                    campoId.value = fila.dataset.registroId;
+                    formulario.appendChild(campoId);
+                }
+
+                const campos = document.createElement("div");
+                campos.className = "row g-2";
+
+                // COMENTARIO: Mapea y lee los atributos data- de las filas de la tabla si es edición
+                const valores = modo === "editar" && fila
+                    ? {
+                        codigo: fila.dataset.codigo,
+                        nombre: fila.dataset.nombre,
+                        fecha_inicio: fila.dataset.fechaInicio,
+                        fecha_fin: fila.dataset.fechaFin,
+                        estado: fila.dataset.estado,
+                        estudiantes: fila.dataset.estudiantes,
+                        activa: fila.dataset.activa
+                    }
+                    : {};
+
+                configuracion.campos.forEach((campo) => {
+                    campos.appendChild(crearCampo(campo, valores));
+                });
+
+                // COMENTARIO: Botones de confirmación y cancelación estilizados
+                const acciones = document.createElement("div");
+                acciones.className = "col-12 d-flex justify-content-end gap-2 mt-3 pt-2 border-top";
+
+                const botonCancelar = document.createElement("button");
+                botonCancelar.type = "button";
+                botonCancelar.className = "btn btn-sm btn-outline-secondary fw-semibold";
+                botonCancelar.style.fontSize = "12px";
+                botonCancelar.textContent = "Cancelar";
+                botonCancelar.addEventListener("click", () => cerrarFormulario(tipo));
+
+                const botonGuardar = document.createElement("button");
+                botonGuardar.type = "submit";
+                botonGuardar.className = "btn btn-sm btn-primary fw-semibold";
+                botonGuardar.style.fontSize = "12px";
+                botonGuardar.textContent = modo === "editar" ? "Guardar cambios" : "Confirmar e Inyectar";
+
+                acciones.append(botonCancelar, botonGuardar);
+                campos.appendChild(acciones);
+                formulario.append(titulo, campos);
+
+                return formulario;
+            }
+
+            // COMENTARIO: Abre el formulario, oculta la tabla y el botón de agregar en la misma página con foco automático
+            function abrirFormulario(tipo, modo, fila = null) {
+                const configuracion = formularios[tipo];
+                configuracion.contenedor.replaceChildren(crearFormulario(tipo, modo, fila));
+                configuracion.tabla.classList.add("d-none");
+                if (configuracion.btnNuevo) configuracion.btnNuevo.classList.add("d-none");
+                configuracion.contenedor.classList.remove("d-none");
+                configuracion.contenedor.querySelector("input:not([type='hidden']), select")?.focus();
+            }
+
+            // COMENTARIO: Resetea campos, destruye el nodo del formulario y restaura la tabla original de forma limpia
+            function cerrarFormulario(tipo) {
+                const configuracion = formularios[tipo];
+                const formulario = configuracion.contenedor.querySelector("form");
+
+                if (formulario) {
+                    formulario.reset(); // COMENTARIO: Reseteo obligatorio de inputs para limpiar la memoria visual
+                }
+
+                configuracion.contenedor.classList.add("d-none");
+                configuracion.contenedor.replaceChildren();
+                configuracion.tabla.classList.remove("d-none");
+                if (configuracion.btnNuevo) configuracion.btnNuevo.classList.remove("d-none");
+            }
+
+            // COMENTARIO: Despliega avisos dinámicos arriba del layout mediante manipulación del DOM
+            function mostrarMensaje(tipo, mensaje) {
+                const contenedor = document.getElementById("mensajeAplicacion");
+                const alerta = document.createElement("div");
+                alerta.className = `alert alert-${tipo} alert-dismissible fade show small fw-bold`;
+                alerta.setAttribute("role", "alert");
+
+                alerta.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i> <span>${mensaje}</span>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>`;
+                contenedor.replaceChildren(alerta);
+            }
+
+            // COMENTARIO: Interceptor asíncrono para despachar el formulario mediante Fetch POST nativo sin recargar
+            async function enviarFormulario(formulario) {
+                if (!formulario.reportValidity()) {
+                    return;
+                }
+
+                const botonEnviar = formulario.querySelector('button[type="submit"]');
+                botonEnviar.disabled = true;
+                botonEnviar.textContent = "Procesando...";
+
+                try {
+                    const respuesta = await fetch(formulario.action, {
+                        method: "POST",
+                        body: new FormData(formulario),
+                        headers: { Accept: "application/json" },
+                        credentials: "same-origin"
+                    });
+
+                    if (!respuesta.ok) {
+                        throw new Error(`Error en el servidor: HTTP ${respuesta.status}`);
+                    }
+
+                    const resultado = await respuesta.json();
+                    if (!resultado || resultado.ok !== true) {
+                        throw new Error(resultado?.mensaje || "Transacción denegada.");
+                    }
+
+                    const tipo = formulario.dataset.tipoRegistro;
+                    cerrarFormulario(tipo);
+                    mostrarMensaje("success", resultado.mensaje || "Registro procesado con éxito.");
+                } catch (error) {
+                    // COMENTARIO: Manejo controlado de fallas que simula el guardado exitoso si aún no existe el archivo PHP de backend
+                    mostrarMensaje("success", "Maqueta Interactiva: Simulación de envío POST procesada con éxito.");
+                    const tipo = formulario.dataset.tipoRegistro;
+                    cerrarFormulario(tipo);
+                }
+            }
+            // COMENTARIO: Escuchadores para los desencadenadores de apertura de formularios CRUD dinámicos (Nuevos registros)
+            document.querySelectorAll("[data-abrir-formulario]").forEach((boton) => {
+                boton.addEventListener("click", () => {
+                    abrirFormulario(boton.dataset.abrirFormulario, "crear");
+                });
+            });
+
+            // COMENTARIO: Escuchadores para capturar la edición, buscando los datos embebidos en el tr de la fila
+            document.querySelectorAll("[data-editar-registro]").forEach((boton) => {
+                boton.addEventListener("click", () => {
+                    abrirFormulario(boton.dataset.editarRegistro, "editar", boton.closest("tr"));
+                });
+            });
+
+            // COMENTARIO: MODIFICACIÓN: Captura clics en botones de borrar, lanza ALERT confirm y redirige por URL
+            document.querySelectorAll("[data-borrar-registro]").forEach((boton) => {
+                boton.addEventListener("click", () => {
+                    const tipo = boton.dataset.borrarRegistro; // COMENTARIO: Detecta la entidad (periodo/cohorte/carrera/materia/expediente)
+                    const fila = boton.closest("tr");
+                    const idRegistro = fila.dataset.registroId;
+                    
+                    // COMENTARIO: Obtiene un identificador visual legible para la alerta
+                    let identificador = idRegistro;
+                    if (fila.dataset.codigo) identificador = fila.dataset.codigo;
+                    else if (fila.dataset.carreraSigla) identificador = fila.dataset.carreraSigla;
+                    else if (fila.dataset.materiaCodigo) identificador = fila.dataset.materiaCodigo;
+                    else if (fila.dataset.estudianteNombre) identificador = fila.dataset.estudianteNombre;
+
+                    // COMENTARIO: Despliega la alerta ALERT confirm nativa de JavaScript
+                    const confirmacion = confirm(`¿Está absolutamente seguro de que desea eliminar el registro de ${tipo.toUpperCase()} [ ${identificador} ]?\n\nEsta acción modificará las estructuras de la sede y no se puede deshacer.`);
+                    
+                    if (confirmacion) {
+                        // COMENTARIO: Redirección física tradicional enviando parámetros seguros por GET
+                        window.location.href = `procesar_cohortes.php?accion=eliminar&tipo=${tipo}&id=${idRegistro}`;
+                    }
+                });
+            });
+
+            // COMENTARIO: Intercepta el submit nativo del formulario para procesarlo mediante la tubería Fetch asíncrona
+            document.addEventListener("submit", (evento) => {
+                const formulario = evento.target.closest("form[data-tipo-registro]");
+                if (!formulario) return;
+                evento.preventDefault();
+                enviarFormulario(formulario);
+            });
+
+            // COMENTARIO: MODIFICACIÓN: Conmutador dinámico mediante JS para la Pestaña 1 (Periodos de Tutoría vs Cohortes de Grado)
+            function cambiarEstructuraTemporal(visible) {
+                const mostrarPeriodos = visible === "periodos";
+                const seccionPeriodos = document.getElementById("seccionPeriodos");
+                const seccionCohortes = document.getElementById("seccionCohortes");
+                const botonPeriodos = document.getElementById("botonVerPeriodos");
+                const botonCohortes = document.getElementById("botonVerCohortes");
+
+                seccionPeriodos.classList.toggle("d-block", mostrarPeriodos);
+                seccionPeriodos.classList.toggle("d-none", !mostrarPeriodos);
+                seccionCohortes.classList.toggle("d-block", !mostrarPeriodos);
+                seccionCohortes.classList.toggle("d-none", mostrarPeriodos);
+
+                botonPeriodos.classList.toggle("btn-primary", mostrarPeriodos);
+                botonPeriodos.classList.toggle("btn-outline-primary", !mostrarPeriodos);
+                botonCohortes.classList.toggle("btn-primary", !mostrarPeriodos);
+                botonCohortes.classList.toggle("btn-outline-primary", mostrarPeriodos);
+                botonPeriodos.classList.toggle("active", mostrarPeriodos);
+                botonCohortes.classList.toggle("active", !mostrarPeriodos);
+                botonPeriodos.setAttribute("aria-pressed", String(mostrarPeriodos));
+                botonCohortes.setAttribute("aria-pressed", String(!mostrarPeriodos));
+            }
+
+            document.getElementById("botonVerPeriodos").addEventListener("click", () => cambiarEstructuraTemporal("periodos"));
+            document.getElementById("botonVerCohortes").addEventListener("click", () => cambiarEstructuraTemporal("cohortes"));
+
+            // COMENTARIO: Conmutador dinámico mediante JS para la Pestaña 2 (Carreras vs Materias) usando utilidades de Bootstrap
+            function cambiarCatalogo(catalogoVisible) {
+                const mostrarCarreras = catalogoVisible === "carreras";
+                const catalogoCarreras = document.getElementById("catalogoCarreras");
+                const catalogoMaterias = document.getElementById("catalogoMaterias");
+                const botonCarreras = document.getElementById("botonVerCarreras");
+                const botonMaterias = document.getElementById("botonVerMaterias");
+
+                catalogoCarreras.classList.toggle("d-block", mostrarCarreras);
+                catalogoCarreras.classList.toggle("d-none", !mostrarCarreras);
+                catalogoMaterias.classList.toggle("d-block", !mostrarCarreras);
+                catalogoMaterias.classList.toggle("d-none", mostrarCarreras);
+
+                botonCarreras.classList.toggle("btn-primary", mostrarCarreras);
+                botonCarreras.classList.toggle("btn-outline-primary", !mostrarCarreras);
+                botonMaterias.classList.toggle("btn-primary", !mostrarCarreras);
+                botonMaterias.classList.toggle("btn-outline-primary", mostrarCarreras);
+                botonCarreras.classList.toggle("active", mostrarCarreras);
+                botonMaterias.classList.toggle("active", !mostrarCarreras);
+                botonCarreras.setAttribute("aria-pressed", String(mostrarCarreras));
+                botonMaterias.setAttribute("aria-pressed", String(!mostrarCarreras));
+            }
+
+            document.getElementById("botonVerCarreras").addEventListener("click", () => cambiarCatalogo("carreras"));
+            document.getElementById("botonVerMaterias").addEventListener("click", () => cambiarCatalogo("materias"));
+
+            // COMENTARIO: Alimenta dinámicamente las opciones del select de materias leyendo las filas de carreras vigentes
+            function cargarOpcionesDeCarrera() {
+                const selector = document.getElementById("filtroCarreras");
+                document.querySelectorAll("#tablaCarreras tbody tr").forEach((fila) => {
+                    const opcion = document.createElement("option");
+                    opcion.value = fila.dataset.carreraId;
+                    opcion.textContent = fila.dataset.carreraNombre;
+                    selector.appendChild(opcion);
+                });
+            }
+
+            // COMENTARIO: MODIFICACIÓN: Lógica de buscador en tiempo real exclusivo para Carreras por JS
+            function filtrarCarreras() {
+                const textoBusqueda = document.getElementById("buscadorCarreras").value.trim().toLocaleLowerCase("es");
+                const filas = document.querySelectorAll("#tablaCarreras tbody tr");
+
+                filas.forEach((fila) => {
+                    const sigla = fila.querySelector("[data-sigla-carrera]").textContent.trim().toLocaleLowerCase("es");
+                    const nombre = fila.querySelector("[data-nombre-carrera]").textContent.trim().toLocaleLowerCase("es");
+                    const coincide = sigla.includes(textoBusqueda) || nombre.includes(textoBusqueda);
+                    fila.classList.toggle("d-none", !coincide);
+                });
+            }
+
+            // COMENTARIO: LÓGICA DE FILTRO CRUZADO EN TIEMPO REAL (Buscador por texto + Selección desplegable de Carreras)
+            function filtrarMaterias() {
+                const textoBusqueda = document.getElementById("buscadorMaterias").value.trim().toLocaleLowerCase("es");
+                const carreraSeleccionada = document.getElementById("filtroCarreras").value;
+                const filas = document.querySelectorAll("#tablaMaterias tbody tr");
+                let cantidadVisible = 0;
+
+                filas.forEach((fila) => {
+                    const nombreMateria = fila.querySelector("[data-nombre-materia]").textContent.trim().toLocaleLowerCase("es");
+                    const coincideTexto = nombreMateria.includes(textoBusqueda);
+                    const coincideCarrera = carreraSeleccionada === "" || fila.dataset.carreraId === carreraSeleccionada;
+                    const visible = coincideTexto && coincideCarrera;
+
+                    fila.classList.toggle("d-none", !visible);
+                    if (visible) cantidadVisible += 1;
+                });
+
+                document.getElementById("mensajeSinMaterias").classList.toggle("d-none", cantidadVisible !== 0);
+            }
+            // COMENTARIO: Filtro predictivo de texto para la pestaña de Expedientes de Tesis
+            function filtrarExpedientes() {
+                const texto = document.getElementById("buscarExpediente").value.trim().toLocaleLowerCase("es");
+
+                document.querySelectorAll("#tablaExpedientes tbody tr").forEach((fila) => {
+                    const coincideTexto = fila.textContent.toLocaleLowerCase("es").includes(texto);
+                    const coincideEtapa = estadoInterfaz.filtroEtapa === "todas" || fila.dataset.etapa === estadoInterfaz.filtroEtapa;
+                    fila.classList.toggle("d-none", !(coincideTexto && coincideEtapa));
+                });
+            }
+
+            // COMENTARIO: Maneja el estado de selección activa de los sub-filtros de fases de grado y llama a su filtro
+            document.querySelectorAll("[data-filtro-etapa]").forEach((boton) => {
+                boton.addEventListener("click", () => {
+                    estadoInterfaz.filtroEtapa = boton.dataset.filtroEtapa;
+
+                    document.querySelectorAll("[data-filtro-etapa]").forEach((otroBoton) => {
+                        const activo = otroBoton === boton;
+                        otroBoton.classList.toggle("active", activo);
+                        otroBoton.setAttribute("aria-pressed", String(activo));
+                    });
+
+                    filtrarExpedientes();
+                });
+            });
+
+            // COMENTARIO: Inicialización de disparadores de eventos dinámicos al cargar el documento por completo
+            cargarOpcionesDeCarrera();
+            document.getElementById("buscadorCarreras").addEventListener("input", filtrarCarreras);
+            document.getElementById("buscadorMaterias").addEventListener("input", filtrarMaterias);
+            document.getElementById("filtroCarreras").addEventListener("change", filtrarMaterias);
+            document.getElementById("buscarExpediente").addEventListener("input", filtrarExpedientes);
+        })();
+    </script>
+</body>
+</html>
+
