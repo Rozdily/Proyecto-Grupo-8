@@ -1,8 +1,8 @@
 <?php
 /**
- * MÓDULO 5: models/sistema/AuditoriaModel/AuditoriaModel.php
- * Administra la bitácora policial del sistema ('bitacora_mg').
- * Funciona como una caja negra inmutable: registra el rastro de "quién, cuándo, desde dónde y qué cambió".
+ * ARCHIVO: models/sistema/AuditoriaModel/index.php
+ * Modelo de la "Caja Negra" inmutable (Tabla: bitacora_mg).
+ * Gestiona la lectura y escritura de toda la auditoría del sistema.
  */
 class AuditoriaModel {
     
@@ -12,70 +12,61 @@ class AuditoriaModel {
         $this->pdo = $conexionBaseDatos;
     }
 
-    // 1. MÉTODO DE NEGOCIO: REGISTRAR LOG INMUTABLE JSON (CREATE)
-    // Inserta un registro de auditoría. Los arrays PHP deben ser convertidos a JSON (json_encode) antes de pasarse aquí.
-    public function registrarLogInmutableJSON($usuario, $accion, $tabla, $id_registro, $datos_antes, $datos_despues, $ip) {
-        $sql = "INSERT INTO bitacora_mg (usuario, accion, tabla, id_registro, datos_antes, datos_despues, ip, fecha) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
+    // ========================================================================
+    // 1. LECTURA (Usado por el Cajón 5 para mostrar la tabla)
+    // ========================================================================
+    public function listarHistorialCompleto($limite = 500) {
+        // Usamos COALESCE para evitar valores nulos y TRIM para asegurar la relación exacta
+        $sql = "SELECT b.id, b.usuario, 
+                       COALESCE(u.correo, 'sistema@upds.edu.bo') AS correo, 
+                       b.accion, b.tabla, b.id_registro, 
+                       b.datos_antes, b.datos_despues, b.ip, b.fecha 
+                FROM bitacora_mg b
+                LEFT JOIN usuarios u ON TRIM(b.usuario) = TRIM(u.usuario)
+                ORDER BY b.fecha DESC 
+                LIMIT ?";
         
         $stmt = $this->pdo->prepare($sql);
-        
-        return $stmt->execute([
-            $usuario,
-            $accion,
-            $tabla,
-            $id_registro,
-            $datos_antes,   // String en formato JSON
-            $datos_despues, // String en formato JSON
-            $ip
-        ]);
-    }
-
-    // 2. LISTAR BITÁCORA COMPLETA (READ)
-    public function listarBitacoraCompleta() {
-        $sql = "SELECT id, usuario, accion, tabla, id_registro, datos_antes, datos_despues, ip, fecha 
-                FROM bitacora_mg 
-                ORDER BY fecha DESC";
-        
-        $stmt = $this->pdo->prepare($sql);
+        // Se bindea como entero para la cláusula LIMIT
+        $stmt->bindValue(1, (int)$limite, PDO::PARAM_INT);
         $stmt->execute();
         
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // 3. MÉTODO DE NEGOCIO: BUSCAR LOG POR USUARIO
-    public function buscarLogPorUsuario($usuario_buscado) {
-        // Envolvemos la búsqueda en comodines para coincidencias parciales del nombre de cuenta
-        $busqueda = "%" . $usuario_buscado . "%";
+    // ========================================================================
+    // 2. ESCRITURA INMUTABLE (Usado por los demás Controladores del sistema)
+    // ========================================================================
+    public function registrarAccion($usuario, $accion, $tabla_afectada, $id_registro, $datos_antes = [], $datos_despues = []) {
         
-        $sql = "SELECT id, usuario, accion, tabla, id_registro, ip, fecha 
-                FROM bitacora_mg 
-                WHERE usuario LIKE ? 
-                ORDER BY fecha DESC";
+        // Convertimos los arrays de PHP a formato JSON puro para la BD
+        $json_antes = json_encode($datos_antes, JSON_UNESCAPED_UNICODE);
+        $json_despues = json_encode($datos_despues, JSON_UNESCAPED_UNICODE);
+        
+        // Capturar la IP real del usuario (incluyendo proxies si existen)
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            $ip = $_SERVER['HTTP_CLIENT_IP'];
+        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        }
+
+        // Se inserta en la BD utilizando NOW() para la fecha y hora exactas del servidor
+        $sql = "INSERT INTO bitacora_mg 
+                (usuario, accion, tabla, id_registro, datos_antes, datos_despues, ip, fecha) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
         
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$busqueda]);
         
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $stmt->execute([
+            $usuario, 
+            $accion, 
+            $tabla_afectada, 
+            $id_registro, 
+            $json_antes, 
+            $json_despues, 
+            $ip
+        ]);
     }
-
-    // 4. BUSCAR LOGS POR TABLA AFECTADA (Filtro útil para el Administrador)
-    public function buscarLogPorTabla($nombre_tabla) {
-        $sql = "SELECT id, usuario, accion, id_registro, datos_antes, datos_despues, ip, fecha 
-                FROM bitacora_mg 
-                WHERE tabla = ? 
-                ORDER BY fecha DESC";
-        
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$nombre_tabla]);
-        
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    // =====================================================================
-    // ATENCIÓN: Por reglas de auditoría y seguridad arquitectónica, 
-    // ESTA CLASE NO TIENE MÉTODOS actualizar() NI eliminar(). 
-    // LA BITÁCORA ES ESTRICTAMENTE DE SOLO LECTURA E INSERCIÓN.
-    // =====================================================================
 }
 ?>

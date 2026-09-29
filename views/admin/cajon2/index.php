@@ -15,6 +15,9 @@ require_once __DIR__ . '/../../../models/estructuras/GrupoTesisModel/index.php';
 require_once __DIR__ . '/../../../models/estructuras/CarreraModel/index.php';
 require_once __DIR__ . '/../../../models/estructuras/MateriaModel/index.php';
 
+// Importar el modelo correspondiente a la Pestaña 3
+require_once __DIR__ . '/../../../models/titulacion/ExpedienteModel/index.php';
+
 // Manejo de pestaña activa tras un CRUD (por defecto inicia en 'periodos')
 $tab_activo = $_GET['tab'] ?? 'periodos';
 $mensaje_exito = $_GET['exito'] ?? '';
@@ -25,6 +28,10 @@ $periodos = [];
 $cohortes = [];
 $carreras = [];
 $materias = [];
+$expedientes = [];
+$lista_estudiantes = [];
+$lista_modalidades = [];
+$lista_cohortes = [];
 
 // Extracción segura de datos desde la BD
 try {
@@ -32,13 +39,19 @@ try {
     $grupoTesisModel = new GrupoTesisModel($pdo);
     $carreraModel = new CarreraModel($pdo);
     $materiaModel = new MateriaModel($pdo);
+    $expedienteModel = new ExpedienteModel($pdo);
 
-    // SOLUCIÓN: Al ser una vista SPA, todas las pestañas se renderizan en el DOM al mismo tiempo.
-    // Por lo tanto, debemos cargar toda la información base sin importar en qué pestaña iniciemos.
+    // Carga Masiva de Datos para la arquitectura SPA (Todas las pestañas listas)
     $periodos = $periodoModel->listarTodos();
     $cohortes = $grupoTesisModel->listarTodos();
     $carreras = $carreraModel->listarTodas();
     $materias = $materiaModel->listarTodas();
+    
+    // Carga de datos para Tablero de Expedientes
+    $expedientes = $expedienteModel->listarTodos();
+    $lista_estudiantes = $expedienteModel->obtenerEstudiantesParaFormulario();
+    $lista_modalidades = $expedienteModel->obtenerModalidadesActivas();
+    $lista_cohortes = $cohortes; // Reutilizamos las cohortes ya consultadas arriba
 
 } catch (Throwable $e) {
     $mensaje_error = "Error al cargar los datos desde la BD: " . $e->getMessage();

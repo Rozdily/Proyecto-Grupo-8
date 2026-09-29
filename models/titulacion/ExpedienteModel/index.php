@@ -1,8 +1,8 @@
 <?php
 /**
- * MÓDULO 4: models/titulacion/ExpedienteModel/ExpedienteModel.php
- * Administra la tabla 'expedientes_mg', el historial de avances ('expediente_etapas')
- * y aplica la lógica de negocio para gestionar el ciclo de vida completo de una tesis.
+ * ARCHIVO: models/titulacion/ExpedienteModel/index.php
+ * Modelo para gestionar el CRUD de la tabla 'expedientes_mg'.
+ * Maneja cruces complejos con estudiantes, cohortes y modalidades.
  */
 class ExpedienteModel {
     
@@ -12,120 +12,116 @@ class ExpedienteModel {
         $this->pdo = $conexionBaseDatos;
     }
 
-    // 1. ABRIR EXPEDIENTE (CREATE)
-    public function abrirExpediente($id_estudiante, $id_modalidad, $id_grupo_tesis, $titulo_trabajo, $fecha_inicio, $observaciones) {
-        // Por defecto, la etapa nace en 'previa' y el estado en 'activo'
-        $sql = "INSERT INTO expedientes_mg (id_estudiante, id_modalidad, id_cohorte, etapa_actual, estado, titulo_trabajo, fecha_inicio, observaciones) 
-                VALUES (?, ?, ?, 'previa', 'activo', ?, ?, ?)";
-        
-        $stmt = $this->pdo->prepare($sql);
-        
-        return $stmt->execute([
-            $id_estudiante, 
-            $id_modalidad, 
-            $id_grupo_tesis, // Físicamente se mapea al campo id_cohorte
-            $titulo_trabajo, 
-            $fecha_inicio, 
-            $observaciones
-        ]);
-    }
-
-    // 2. LEER TODOS CON MEGA CRUCE (READ - INNER JOINs Múltiples)
-    public function obtenerTodos() {
-        // Regla de Vocabulario Aplicada: El alias 'nombre_grupo_tesis' bloquea la fuga de la palabra prohibida hacia el JS
-        $sql = "SELECT ex.id_expediente, ex.etapa_actual, ex.estado, ex.titulo_trabajo, ex.fecha_inicio,
-                       u.nombre, u.apellido, e.registro_universitario,
+    // 1. LISTAR TODOS LOS EXPEDIENTES (CON INNER JOINS)
+    public function listarTodos() {
+        $sql = "SELECT e.id_expediente, e.id_estudiante, e.id_modalidad, e.id_cohorte, 
+                       e.etapa_actual, e.estado, e.titulo_trabajo, e.fecha_inicio, 
+                       e.fecha_cierre, e.observaciones,
+                       est.registro_universitario,
+                       CONCAT(u.nombre, ' ', u.apellido) AS nombre_estudiante,
                        m.nombre AS nombre_modalidad,
-                       c.nombre AS nombre_grupo_tesis 
-                FROM expedientes_mg ex
-                INNER JOIN estudiantes e ON ex.id_estudiante = e.id_estudiante
-                INNER JOIN usuarios u ON e.id_usuario = u.id_usuario
-                INNER JOIN modalidades_grado m ON ex.id_modalidad = m.id_modalidad
-                INNER JOIN cohortes_mg c ON ex.id_cohorte = c.id_cohorte
-                ORDER BY ex.fecha_inicio DESC";
-        
+                       c.nombre AS nombre_cohorte
+                FROM expedientes_mg e
+                INNER JOIN estudiantes est ON e.id_estudiante = est.id_estudiante
+                INNER JOIN usuarios u ON est.id_usuario = u.id_usuario
+                INNER JOIN modalidades_grado m ON e.id_modalidad = m.id_modalidad
+                INNER JOIN cohortes_mg c ON e.id_cohorte = c.id_cohorte
+                ORDER BY e.fecha_inicio DESC";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute();
         
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // 3. OBTENER UN EXPEDIENTE POR ID
+    // 2. OBTENER UN EXPEDIENTE POR ID
     public function obtenerPorId($id_expediente) {
-        $sql = "SELECT id_expediente, id_estudiante, id_modalidad, id_cohorte AS id_grupo_tesis, 
-                       etapa_actual, estado, titulo_trabajo, fecha_inicio, fecha_cierre, observaciones 
-                FROM expedientes_mg 
-                WHERE id_expediente = ?";
-        
+        $sql = "SELECT * FROM expedientes_mg WHERE id_expediente = ?";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$id_expediente]);
         
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // 4. ACTUALIZAR EXPEDIENTE (Datos generales)
-    public function actualizar($id_expediente, $titulo_trabajo, $estado, $observaciones) {
+    // 3. OBTENER LISTA DE ESTUDIANTES PARA EL FORMULARIO
+    public function obtenerEstudiantesParaFormulario() {
+        $sql = "SELECT est.id_estudiante, est.registro_universitario, 
+                       CONCAT(u.nombre, ' ', u.apellido) AS nombre_completo
+                FROM estudiantes est
+                INNER JOIN usuarios u ON est.id_usuario = u.id_usuario
+                WHERE u.estado = 'activo'
+                ORDER BY u.apellido ASC, u.nombre ASC";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // 4. OBTENER LISTA DE MODALIDADES DE GRADO ACTIVAS PARA EL FORMULARIO
+    public function obtenerModalidadesActivas() {
+        $sql = "SELECT id_modalidad, nombre, codigo 
+                FROM modalidades_grado 
+                WHERE activa = 1 
+                ORDER BY nombre ASC";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // 5. VERIFICAR DUPLICADOS (REGLA UNIQUE: estudiante + modalidad + cohorte)
+    public function existeExpediente($id_estudiante, $id_modalidad, $id_cohorte, $id_excluir = null) {
+        $sql = "SELECT id_expediente FROM expedientes_mg 
+                WHERE id_estudiante = ? AND id_modalidad = ? AND id_cohorte = ?";
+        $params = [$id_estudiante, $id_modalidad, $id_cohorte];
+        
+        if ($id_excluir) {
+            $sql .= " AND id_expediente != ?";
+            $params[] = $id_excluir;
+        }
+        
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        
+        return $stmt->fetch(PDO::FETCH_ASSOC) !== false;
+    }
+
+    // 6. CREAR NUEVO EXPEDIENTE
+    public function crear($id_estudiante, $id_modalidad, $id_cohorte, $etapa_actual, $estado, $titulo_trabajo, $fecha_inicio, $fecha_cierre, $observaciones) {
+        $sql = "INSERT INTO expedientes_mg 
+                (id_estudiante, id_modalidad, id_cohorte, etapa_actual, estado, titulo_trabajo, fecha_inicio, fecha_cierre, observaciones) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute([
+            $id_estudiante, $id_modalidad, $id_cohorte, 
+            $etapa_actual, $estado, $titulo_trabajo, 
+            $fecha_inicio, $fecha_cierre, $observaciones
+        ]);
+    }
+
+    // 7. ACTUALIZAR EXPEDIENTE EXISTENTE
+    public function actualizar($id_expediente, $id_estudiante, $id_modalidad, $id_cohorte, $etapa_actual, $estado, $titulo_trabajo, $fecha_inicio, $fecha_cierre, $observaciones) {
         $sql = "UPDATE expedientes_mg 
-                SET titulo_trabajo = ?, estado = ?, observaciones = ? 
+                SET id_estudiante = ?, id_modalidad = ?, id_cohorte = ?, 
+                    etapa_actual = ?, estado = ?, titulo_trabajo = ?, 
+                    fecha_inicio = ?, fecha_cierre = ?, observaciones = ?
                 WHERE id_expediente = ?";
         
         $stmt = $this->pdo->prepare($sql);
-        
         return $stmt->execute([
-            $titulo_trabajo, 
-            $estado, 
-            $observaciones, 
+            $id_estudiante, $id_modalidad, $id_cohorte, 
+            $etapa_actual, $estado, $titulo_trabajo, 
+            $fecha_inicio, $fecha_cierre, $observaciones, 
             $id_expediente
         ]);
     }
 
-    // 5. MÉTODO DE NEGOCIO: PROMOCIONAR ETAPA (De MG1 a MG2)
-    public function promocionarEtapa($id_expediente, $nueva_etapa, $resultado_etapa_anterior, $id_usuario_registra) {
-        // A. Actualizar el registro maestro del expediente
-        $sqlUpdate = "UPDATE expedientes_mg SET etapa_actual = ? WHERE id_expediente = ?";
-        $stmtUpdate = $this->pdo->prepare($sqlUpdate);
-        $exitoUpdate = $stmtUpdate->execute([$nueva_etapa, $id_expediente]);
-
-        // B. Si la matriz cambia, insertar la huella histórica del salto en expediente_etapas
-        if ($exitoUpdate) {
-            $sqlInsert = "INSERT INTO expediente_etapas (id_expediente, etapa, fecha_inicio, resultado, registrado_por) 
-                          VALUES (?, ?, NOW(), ?, ?)";
-            
-            $stmtInsert = $this->pdo->prepare($sqlInsert);
-            return $stmtInsert->execute([
-                $id_expediente, 
-                $nueva_etapa, 
-                $resultado_etapa_anterior, 
-                $id_usuario_registra
-            ]);
-        }
-        
-        return false;
-    }
-
-    // 6. MÉTODO DE NEGOCIO: BUSCADOR PREDICTIVO SPA (Cajón 2)
-    public function buscarPorTextoPredictivo($textoBusqueda) {
-        // Envolvemos el término en comodines '%' para buscar coincidencias parciales
-        $busqueda = "%" . $textoBusqueda . "%";
-        
-        $sql = "SELECT ex.id_expediente, ex.etapa_actual, ex.estado, 
-                       u.nombre, u.apellido, e.registro_universitario,
-                       c.nombre AS nombre_grupo_tesis
-                FROM expedientes_mg ex
-                INNER JOIN estudiantes e ON ex.id_estudiante = e.id_estudiante
-                INNER JOIN usuarios u ON e.id_usuario = u.id_usuario
-                INNER JOIN cohortes_mg c ON ex.id_cohorte = c.id_cohorte
-                WHERE e.registro_universitario LIKE ? 
-                   OR u.nombre LIKE ? 
-                   OR u.apellido LIKE ?
-                ORDER BY u.apellido ASC";
-        
+    // 8. ELIMINAR EXPEDIENTE FÍSICAMENTE
+    public function eliminar($id_expediente) {
+        $sql = "DELETE FROM expedientes_mg WHERE id_expediente = ?";
         $stmt = $this->pdo->prepare($sql);
         
-        // Ejecutamos pasando la misma variable a los tres interrogantes lógicos
-        $stmt->execute([$busqueda, $busqueda, $busqueda]);
-        
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $stmt->execute([$id_expediente]);
     }
 }
 ?>

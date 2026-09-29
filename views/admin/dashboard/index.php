@@ -72,8 +72,12 @@ $nombre_admin = $_SESSION['nombre'] ?? 'Administrador';
                     </ul>
                 </div>
             </div>
-            <div class="card-footer bg-transparent border-top p-3 text-end">
-                <a href="index.php?seccion=cajon2" class="text-decoration-none small fw-semibold text-muted">Configurar Estructuras <i class="fas fa-chevron-right ms-1" style="font-size: 0.7rem;"></i></a>
+            <div class="card-footer bg-transparent border-top p-3 text-end text-muted small fw-semibold">
+                <a href="index.php?seccion=cajon2&tab=periodos" class="text-decoration-none text-muted">Periodos y Cohortes</a>
+                <span class="mx-2">|</span>
+                <a href="index.php?seccion=cajon2&tab=oferta" class="text-decoration-none text-muted">Oferta Universitaria</a>
+                <span class="mx-2">|</span>
+                <a href="index.php?seccion=cajon2&tab=expedientes" class="text-decoration-none text-muted">Expedientes de Tesis</a>
             </div>
         </div>
     </div>
@@ -93,8 +97,14 @@ $nombre_admin = $_SESSION['nombre'] ?? 'Administrador';
                     </ul>
                 </div>
             </div>
-            <div class="card-footer bg-transparent border-top p-3 text-end">
-                <a href="index.php?seccion=cajon3" class="text-decoration-none small fw-semibold" style="color: #17a2b8;">Ver Agenda Sede <i class="fas fa-chevron-right ms-1" style="font-size: 0.7rem;"></i></a>
+            <div class="card-footer bg-transparent border-top p-3 text-end" style="color: #17a2b8;">
+                <a href="index.php?seccion=cajon2&tab=periodos" class="text-decoration-none small fw-semibold" style="color: #17a2b8;">Hitos</a>
+                <span class="mx-2">|</span>
+                <a href="index.php?seccion=cajon2&tab=oferta" class="text-decoration-none small fw-semibold" style="color: #17a2b8;">Prog. Defensas</a>
+                <span class="mx-2">|</span>
+                <a href="index.php?seccion=cajon2&tab=expedientes" class="text-decoration-none small fw-semibold" style="color: #17a2b8;">Prog. Reuniones</a>
+                <span class="mx-2">|</span>
+                <a href="index.php?seccion=cajon2&tab=expedientes" class="text-decoration-none small fw-semibold" style="color: #17a2b8;">Prog. Tutorias</a>
             </div>
         </div>
     </div>
@@ -135,8 +145,10 @@ $nombre_admin = $_SESSION['nombre'] ?? 'Administrador';
                     </ul>
                 </div>
             </div>
-            <div class="card-footer bg-transparent border-top p-3 text-end">
-                <a href="index.php?seccion=cajon5" class="text-decoration-none small fw-semibold" style="color: #28a745;">Consultar Registros <i class="fas fa-chevron-right ms-1" style="font-size: 0.7rem;"></i></a>
+            <div class="card-footer bg-transparent border-top p-3 text-end" style="color: #28a745;">
+                <a href="index.php?seccion=cajon2&tab=periodos" class="text-decoration-none small fw-semibold" style="color: #28a745;">Reportes de Rendimiento</a>
+                <span class="mx-2">|</span>
+                <a href="index.php?seccion=cajon2&tab=oferta" class="text-decoration-none small fw-semibold" style="color: #28a745;">Bitacora de Auditoria</a>    
             </div>
         </div>
     </div>

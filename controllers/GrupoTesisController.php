@@ -1,33 +1,35 @@
 <?php
 /**
  * ARCHIVO: controllers/GrupoTesisController.php
- * Controlador para procesar las acciones CRUD de Grupos de Tesis / Cohortes (Cajón 2).
+ * Controlador para procesar las acciones CRUD de Grupos de Tesis / Cohortes con Auditoría.
  */
 
 require_once __DIR__ . '/../config/conexion.php';
 require_once __DIR__ . '/../models/estructuras/GrupoTesisModel/index.php';
+require_once __DIR__ . '/../models/sistema/AuditoriaModel/index.php'; // Inyección de Auditoría
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Validar que el usuario sea administrador
 if (!isset($_SESSION['id_rol']) || $_SESSION['id_rol'] != 1) {
     header("Location: ../views/login/login.php?error=acceso_denegado");
     exit();
 }
 
 $grupoTesisModel = new GrupoTesisModel($pdo);
+$auditoriaModel = new AuditoriaModel($pdo);
 $accion = $_GET['accion'] ?? $_POST['accion'] ?? '';
 
-// Variables base para la redirección SPA (Apunta directo a la pestaña cohortes)
+// Identificar al Actor
+$usuario_str = $_SESSION['usuario'] ?? 'Admin';
+$correo_str = $_SESSION['correo'] ?? 'Sin correo';
+$actor_completo = $usuario_str . ' (' . $correo_str . ')';
+
 $url_base = "../views/admin/index.php?seccion=cajon2&tab=cohortes";
 
 switch ($accion) {
     
-    // ------------------------------------------------------------------------
-    // CREAR NUEVO GRUPO DE TESIS (COHORTE)
-    // ------------------------------------------------------------------------
     case 'crear':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $codigo = trim($_POST['codigo'] ?? '');
@@ -36,19 +38,16 @@ switch ($accion) {
             $fecha_fin = $_POST['fecha_fin'] ?? '';
             $activa = $_POST['activa'] ?? 1;
 
-            // 1. Validar campos vacíos
             if (empty($codigo) || empty($nombre) || empty($fecha_inicio) || empty($fecha_fin)) {
                 header("Location: $url_base&error=" . urlencode("Todos los campos son obligatorios."));
                 exit();
             }
 
-            // 2. Validar coherencia de fechas
             if (strtotime($fecha_inicio) >= strtotime($fecha_fin)) {
                 header("Location: $url_base&error=" . urlencode("La fecha de inicio debe ser menor a la fecha de finalización."));
                 exit();
             }
 
-            // 3. Validar duplicados en la base de datos
             if ($grupoTesisModel->existeCodigo($codigo)) {
                 header("Location: $url_base&error=" . urlencode("El código de cohorte ($codigo) ya se encuentra registrado."));
                 exit();
@@ -56,6 +55,15 @@ switch ($accion) {
 
             try {
                 $grupoTesisModel->crear($codigo, $nombre, $fecha_inicio, $fecha_fin, $activa);
+                $nuevo_id = $pdo->lastInsertId();
+
+                // AUDITORÍA: Leer fila completa recién creada
+                $stmt = $pdo->prepare("SELECT * FROM cohortes_mg WHERE id_cohorte = ?");
+                $stmt->execute([$nuevo_id]);
+                $datos_despues = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+                $auditoriaModel->registrarAccion($actor_completo, 'CREAR', 'cohortes_mg', $nuevo_id, [], $datos_despues);
+
                 header("Location: $url_base&exito=" . urlencode("Cohorte / Grupo de Tesis creado correctamente."));
                 exit();
             } catch (Throwable $e) {
@@ -65,12 +73,8 @@ switch ($accion) {
         }
         break;
 
-    // ------------------------------------------------------------------------
-    // ACTUALIZAR GRUPO EXISTENTE
-    // ------------------------------------------------------------------------
     case 'actualizar':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Nota: En la vista enviamos el ID en el campo 'id_registro'
             $id_cohorte = $_POST['id_registro'] ?? null;
             $codigo = trim($_POST['codigo'] ?? '');
             $nombre = trim($_POST['nombre'] ?? '');
@@ -88,14 +92,26 @@ switch ($accion) {
                 exit();
             }
 
-            // Validar que el nuevo código no choque con OTRA cohorte distinta
             if ($grupoTesisModel->existeCodigo($codigo, $id_cohorte)) {
                 header("Location: $url_base&error=" . urlencode("El código ($codigo) ya está en uso por otra cohorte."));
                 exit();
             }
 
             try {
+                // AUDITORÍA PASO 1: Leer antes
+                $stmt = $pdo->prepare("SELECT * FROM cohortes_mg WHERE id_cohorte = ?");
+                $stmt->execute([$id_cohorte]);
+                $datos_antes = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
                 $grupoTesisModel->actualizar($id_cohorte, $codigo, $nombre, $fecha_inicio, $fecha_fin, $activa);
+
+                // AUDITORÍA PASO 2: Leer después
+                $stmt = $pdo->prepare("SELECT * FROM cohortes_mg WHERE id_cohorte = ?");
+                $stmt->execute([$id_cohorte]);
+                $datos_despues = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+                $auditoriaModel->registrarAccion($actor_completo, 'ACTUALIZAR', 'cohortes_mg', $id_cohorte, $datos_antes, $datos_despues);
+
                 header("Location: $url_base&exito=" . urlencode("Cohorte actualizada correctamente."));
                 exit();
             } catch (Throwable $e) {
@@ -105,19 +121,24 @@ switch ($accion) {
         }
         break;
 
-    // ------------------------------------------------------------------------
-    // ELIMINAR GRUPO
-    // ------------------------------------------------------------------------
     case 'eliminar':
         $id_cohorte = $_GET['id'] ?? null;
         
         if ($id_cohorte) {
             try {
+                // AUDITORÍA PASO 1: Leer antes de borrar
+                $stmt = $pdo->prepare("SELECT * FROM cohortes_mg WHERE id_cohorte = ?");
+                $stmt->execute([$id_cohorte]);
+                $datos_antes = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
                 $grupoTesisModel->eliminar($id_cohorte);
+
+                // AUDITORÍA PASO 2: Registrar eliminación
+                $auditoriaModel->registrarAccion($actor_completo, 'ELIMINAR', 'cohortes_mg', $id_cohorte, $datos_antes, []);
+
                 header("Location: $url_base&exito=" . urlencode("La cohorte fue borrada del sistema."));
                 exit();
             } catch (Throwable $e) {
-                // Falla común si hay expedientes_mg asignados a esta cohorte (Restricción de llave foránea)
                 header("Location: $url_base&error=" . urlencode("No se pudo borrar la cohorte porque existen expedientes o hitos asignados a ella."));
                 exit();
             }

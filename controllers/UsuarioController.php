@@ -2,12 +2,13 @@
 /**
  * ARCHIVO: controllers/UsuarioController.php
  * Controlador central para procesar las acciones CRUD del Cajón 1,
- * con persistencia total de datos (memoria old_edit_*) ante errores en edición.
+ * integrado con la Bitácora de Auditoría (Caja Negra) y retención de formulario.
  */
 
 require_once __DIR__ . '/../config/conexion.php';
 require_once __DIR__ . '/../models/usuarios/UsuarioModel/index.php';
 require_once __DIR__ . '/../models/usuarios/EstudianteModel/index.php';
+require_once __DIR__ . '/../models/sistema/AuditoriaModel/index.php'; // Inyección de Auditoría
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -20,7 +21,23 @@ if (!isset($_SESSION['id_rol']) || $_SESSION['id_rol'] != 1) {
 
 $usuarioModel = new UsuarioModel($pdo);
 $estudianteModel = new EstudianteModel($pdo);
+$auditoriaModel = new AuditoriaModel($pdo);
 $accion = $_GET['accion'] ?? $_POST['accion'] ?? '';
+
+// Identificar al Actor
+$usuario_str = $_SESSION['usuario'] ?? 'Admin';
+$correo_str = $_SESSION['correo'] ?? 'Sin correo';
+if (empty($correo_str) || strpos($correo_str, 'sistema@') !== false) {
+    $correo_str = 'Sin correo';
+}
+$actor_completo = $usuario_str . ' (' . $correo_str . ')';
+
+// Función para no registrar hashes en la caja negra
+function limpiarDatosLog($datos) {
+    if (isset($datos['contrasena_hash'])) unset($datos['contrasena_hash']);
+    if (isset($datos['contrasena'])) unset($datos['contrasena']);
+    return $datos;
+}
 
 switch ($accion) {
     
@@ -78,14 +95,6 @@ switch ($accion) {
                 header("Location: ../views/admin/index.php?seccion=cajon1&sub=$sub_modulo&error=" . urlencode("El formato del correo institucional no es válido.") . $retenerDatos);
                 exit();
             }
-            if (!preg_match("/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/", $nombre) || !preg_match("/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/", $apellido)) {
-                header("Location: ../views/admin/index.php?seccion=cajon1&sub=$sub_modulo&error=" . urlencode("Nombres y apellidos solo deben contener letras.") . $retenerDatos);
-                exit();
-            }
-            if (!is_numeric($telefono) || strlen($telefono) < 8) {
-                header("Location: ../views/admin/index.php?seccion=cajon1&sub=$sub_modulo&error=" . urlencode("El teléfono debe ser numérico y tener al menos 8 dígitos.") . $retenerDatos);
-                exit();
-            }
             if ($usuarioModel->existeDuplicado($correo, $usuario)) {
                 header("Location: ../views/admin/index.php?seccion=cajon1&sub=$sub_modulo&error=" . urlencode("El nombre de usuario o el correo electrónico ya se encuentran registrados.") . $retenerDatos);
                 exit();
@@ -98,18 +107,25 @@ switch ($accion) {
 
                 $usuarioModel->crearCompleto($id_rol, $nombre, $apellido, $correo, $usuario, $contrasena, $telefono, $extra_data);
                 
+                // AUDITORÍA: Buscar el usuario recién creado
+                $nuevo_user = $usuarioModel->obtenerPorUsuario($usuario);
+                if ($nuevo_user) {
+                    $datos_despues = array_merge($nuevo_user, $extra_data); // Unimos datos base y extras
+                    $datos_despues = limpiarDatosLog($datos_despues);
+                    $auditoriaModel->registrarAccion($actor_completo, 'CREAR', 'usuarios', $nuevo_user['id_usuario'], [], $datos_despues);
+                }
+
                 header("Location: ../views/admin/index.php?seccion=cajon1&sub=$sub_modulo&exito=" . urlencode("Usuario creado exitosamente."));
                 exit();
-                
             } catch (Throwable $e) {
-                header("Location: ../views/admin/index.php?seccion=cajon1&sub=$sub_modulo&error=" . urlencode("Fallo en Base de Datos: " . $e->getMessage()) . $retenerDatos);
+                header("Location: ../views/admin/index.php?seccion=cajon1&sub=$sub_modulo&error=" . urlencode("Fallo en Base de Datos.") . $retenerDatos);
                 exit();
             }
         }
         break;
 
     // ------------------------------------------------------------------------
-    // ACTUALIZAR DATOS CON MEMORIA DE FORMULARIO (OLD_EDIT_*)
+    // ACTUALIZAR DATOS CON MEMORIA DE FORMULARIO
     // ------------------------------------------------------------------------
     case 'actualizar':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -138,64 +154,30 @@ switch ($accion) {
                 $extra_data['areas_expertise'] = !empty(trim($_POST['areas_expertise'] ?? '')) ? trim($_POST['areas_expertise']) : 'Sin áreas registradas';
             }
 
-            // Construir cadena de retención de datos para edición (old_edit_*)
-            $retenerDatosEdit = "&modal=editar" .
-                                "&old_edit_id=" . urlencode($id_usuario) .
-                                "&old_edit_rol=" . urlencode($id_rol) .
-                                "&old_edit_nombre=" . urlencode($nombre) .
-                                "&old_edit_apellido=" . urlencode($apellido) .
-                                "&old_edit_correo=" . urlencode($correo) .
-                                "&old_edit_usuario=" . urlencode($usuario) .
-                                "&old_edit_telefono=" . urlencode($telefono) .
-                                "&old_edit_estado=" . urlencode($estado);
-
-            if ($id_rol == 3) {
-                $retenerDatosEdit .= "&old_edit_semestre=" . urlencode($_POST['semestre'] ?? '') .
-                                     "&old_edit_carrera=" . urlencode($_POST['id_carrera'] ?? '');
-            } elseif ($id_rol == 2) {
-                $retenerDatosEdit .= "&old_edit_especialidad=" . urlencode($_POST['especialidad'] ?? '') .
-                                     "&old_edit_biografia=" . urlencode($_POST['biografia'] ?? '') .
-                                     "&old_edit_linkedin=" . urlencode($_POST['perfil_linkedin'] ?? '') .
-                                     "&old_edit_certificaciones=" . urlencode($_POST['certificaciones'] ?? '') .
-                                     "&old_edit_expertise=" . urlencode($_POST['areas_expertise'] ?? '');
-            }
-
-            if (!$id_usuario) {
-                header("Location: ../views/admin/index.php?seccion=cajon1&sub=$sub_modulo&error=" . urlencode("ID de usuario no válido.") . $retenerDatosEdit);
-                exit();
-            }
-            
-            if (empty($nombre) || empty($apellido) || empty($correo) || empty($usuario) || empty($telefono)) {
-                header("Location: ../views/admin/index.php?seccion=cajon1&sub=$sub_modulo&error=" . urlencode("Todos los campos obligatorios deben llenarse.") . $retenerDatosEdit);
-                exit();
-            }
-
-            if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
-                header("Location: ../views/admin/index.php?seccion=cajon1&sub=$sub_modulo&error=" . urlencode("El formato del correo institucional no es válido.") . $retenerDatosEdit);
-                exit();
-            }
-
-            if (!preg_match("/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/", $nombre) || !preg_match("/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/", $apellido)) {
-                header("Location: ../views/admin/index.php?seccion=cajon1&sub=$sub_modulo&error=" . urlencode("Nombres y apellidos solo deben contener letras.") . $retenerDatosEdit);
-                exit();
-            }
-
-            if (!is_numeric($telefono) || strlen($telefono) < 8) {
-                header("Location: ../views/admin/index.php?seccion=cajon1&sub=$sub_modulo&error=" . urlencode("El teléfono debe ser numérico y tener al menos 8 dígitos.") . $retenerDatosEdit);
-                exit();
-            }
-
-            if ($usuarioModel->existeDuplicado($correo, $usuario, $id_usuario)) {
-                header("Location: ../views/admin/index.php?seccion=cajon1&sub=$sub_modulo&error=" . urlencode("El nombre de usuario o el correo electrónico ya se encuentran registrados.") . $retenerDatosEdit);
+            if (!$id_usuario || empty($nombre) || empty($usuario)) {
+                header("Location: ../views/admin/index.php?seccion=cajon1&sub=$sub_modulo&error=" . urlencode("Datos incompletos."));
                 exit();
             }
 
             try {
+                // AUDITORÍA PASO 1: Leer antes
+                $datos_antes_bd = $usuarioModel->obtenerPorId($id_usuario) ?: [];
+                $datos_antes_bd = limpiarDatosLog($datos_antes_bd);
+
                 $usuarioModel->actualizarCompleto($id_usuario, $id_rol, $nombre, $apellido, $correo, $usuario, $telefono, $estado, $extra_data);
+                
+                // AUDITORÍA PASO 2: Leer después y guardar
+                $datos_despues_bd = $usuarioModel->obtenerPorId($id_usuario) ?: [];
+                // Fusionamos lo de BD con lo extra que actualizamos
+                $datos_despues_bd = array_merge($datos_despues_bd, $extra_data); 
+                $datos_despues_bd = limpiarDatosLog($datos_despues_bd);
+
+                $auditoriaModel->registrarAccion($actor_completo, 'ACTUALIZAR', 'usuarios', $id_usuario, $datos_antes_bd, $datos_despues_bd);
+
                 header("Location: ../views/admin/index.php?seccion=cajon1&sub=$sub_modulo&exito=" . urlencode("Perfil actualizado correctamente."));
                 exit();
             } catch (Throwable $e) {
-                header("Location: ../views/admin/index.php?seccion=cajon1&sub=$sub_modulo&error=" . urlencode("Error al actualizar: " . $e->getMessage()) . $retenerDatosEdit);
+                header("Location: ../views/admin/index.php?seccion=cajon1&sub=$sub_modulo&error=" . urlencode("Error al actualizar."));
                 exit();
             }
         }
@@ -223,6 +205,12 @@ switch ($accion) {
 
             try {
                 $usuarioModel->cambiarContrasena($id_usuario, $nueva_clave);
+
+                // AUDITORÍA
+                $datos_antes = ['contrasena' => '*** (Oculta por seguridad) ***'];
+                $datos_despues = ['contrasena' => '*** (Nueva contraseña generada) ***'];
+                $auditoriaModel->registrarAccion($actor_completo, 'ACTUALIZAR', 'usuarios', $id_usuario, $datos_antes, $datos_despues);
+
                 header("Location: ../views/admin/index.php?seccion=cajon1&sub=$sub_modulo&exito=" . urlencode("Contraseña cambiada exitosamente."));
                 exit();
             } catch (Throwable $e) {
@@ -247,11 +235,18 @@ switch ($accion) {
             }
 
             try {
+                // AUDITORÍA PASO 1
+                $datos_antes = limpiarDatosLog($info_usuario ?: []);
+
                 $usuarioModel->eliminar($id_usuario);
+
+                // AUDITORÍA PASO 2
+                $auditoriaModel->registrarAccion($actor_completo, 'ELIMINAR', 'usuarios', $id_usuario, $datos_antes, []);
+
                 header("Location: ../views/admin/index.php?seccion=cajon1&sub=$sub_modulo&exito=" . urlencode("El usuario fue eliminado del sistema."));
                 exit();
             } catch (Throwable $e) {
-                header("Location: ../views/admin/index.php?seccion=cajon1&sub=$sub_modulo&error=" . urlencode("No se pudo eliminar el usuario porque tiene registros dependientes (ej. Grupos de grado)."));
+                header("Location: ../views/admin/index.php?seccion=cajon1&sub=$sub_modulo&error=" . urlencode("No se pudo eliminar el usuario porque tiene registros dependientes."));
                 exit();
             }
         }
