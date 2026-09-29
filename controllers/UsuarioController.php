@@ -15,7 +15,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 if (!isset($_SESSION['id_rol']) || $_SESSION['id_rol'] != 1) {
-    header("Location: ../views/login/login.php?error=acceso_denegado");
+    header("Location: ../views/login/index.php?error=acceso_denegado");
     exit();
 }
 

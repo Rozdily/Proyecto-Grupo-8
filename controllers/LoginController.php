@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password_input = $_POST['contrasena'] ?? '';
 
     if (empty($usuario_input) || empty($password_input)) {
-        header("Location: ../views/login/login.php?error=vacio");
+        header("Location: ../views/login/index.php?error=vacio");
         exit();
     }
 
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Comprobar que no esté inactivo
             if ($user['estado'] !== 'activo') {
-                header("Location: ../views/login/login.php?error=inactivo");
+                header("Location: ../views/login/index.php?error=inactivo");
                 exit();
             }
 
@@ -86,21 +86,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header("Location: ../views/admin/index.php");
             } else {
                 // Tutor o Estudiante (Ajusta la ruta según tu estructura para ellos)
-                header("Location: ../views/portal/index.php"); 
+                header("Location: ../views/estudiante/index.php"); 
             }
             exit();
 
         } else {
             // Contraseña incorrecta o usuario no existe
-            header("Location: ../views/login/login.php?error=credenciales");
+            header("Location: ../views/login/index.php?error=credenciales");
             exit();
         }
     } catch (Throwable $e) {
-        header("Location: ../views/login/login.php?error=sistema");
+        header("Location: ../views/login/index.php?error=sistema");
         exit();
     }
 } else {
     // Si intentan entrar por GET en lugar de POST
-    header("Location: ../views/login/login.php");
+    header("Location: ../views/login/index.php");
     exit();
 }

@@ -28,7 +28,9 @@ function getParam($clave, $default, $parametros) {
                     <small class="text-muted">Configuración de los topes de apoyo académico regular por materia.</small>
                 </div>
                 <div class="card-body bg-light p-4">
-                    <div class="row align-items-center mb-3">
+                    
+                    <!-- Parámetro: Horas máximas -->
+                    <div class="row align-items-center mb-4 pb-3 border-bottom border-plano">
                         <div class="col-md-7">
                             <label class="form-label fw-bold mb-0">Máximo de horas permitidas por semana</label>
                             <div class="form-text text-muted mt-0">Define el tope de horas semanales que un estudiante puede solicitar para tutorías de refuerzo.</div>
@@ -41,6 +43,37 @@ function getParam($clave, $default, $parametros) {
                             </div>
                         </div>
                     </div>
+
+                    <!-- Parámetro: Mínimo de días anticipación -->
+                    <div class="row align-items-center mb-4 pb-3 border-bottom border-plano">
+                        <div class="col-md-7">
+                            <label class="form-label fw-bold mb-0">Mínimo de anticipación para solicitar</label>
+                            <div class="form-text text-muted mt-0">Días de margen obligatorios (Ej: 2 días significa que hoy no se puede pedir para mañana).</div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="input-group input-group-sm">
+                                <input type="number" name="parametros[MIN_DIAS_ANTICIPACION_TUTORIA]" class="form-control border-plano text-center fw-bold" 
+                                       value="<?php echo getParam('MIN_DIAS_ANTICIPACION_TUTORIA', '2', $parametros); ?>" min="0" max="30" required>
+                                <span class="input-group-text bg-white border-plano">días</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Parámetro: Máximo de días a futuro -->
+                    <div class="row align-items-center">
+                        <div class="col-md-7">
+                            <label class="form-label fw-bold mb-0">Máximo de días a futuro</label>
+                            <div class="form-text text-muted mt-0">Límite máximo de tiempo para agendar (Ej: 60 días restringe el calendario a no más de 2 meses).</div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="input-group input-group-sm">
+                                <input type="number" name="parametros[MAX_DIAS_ANTICIPACION_TUTORIA]" class="form-control border-plano text-center fw-bold" 
+                                       value="<?php echo getParam('MAX_DIAS_ANTICIPACION_TUTORIA', '60', $parametros); ?>" min="1" max="365" required>
+                                <span class="input-group-text bg-white border-plano">días</span>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 

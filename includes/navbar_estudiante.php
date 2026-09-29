@@ -1,0 +1,96 @@
+<?php
+/**
+ * ARCHIVO: includes/navbar_estudiante.php
+ * Barra de navegación principal superior exclusiva para Estudiantes.
+ */
+$seccion_actual = $_GET['seccion'] ?? 'dashboard';
+
+// Rescate seguro de variables de sesión
+$nombre_usuario = $_SESSION['nombre'] ?? 'Estudiante';
+$apellido_usuario = $_SESSION['apellido'] ?? '';
+$iniciales = strtoupper(substr($nombre_usuario, 0, 1) . substr($apellido_usuario, 0, 1));
+?>
+<nav class="navbar navbar-expand-lg navbar-dark shadow-sm border-plano sticky-top" style="background-color: #0B427B;">
+    <div class="container-fluid px-4">
+        
+        <!-- Logo UPDS -->
+        <a class="navbar-brand d-flex align-items-center me-4" href="index.php?seccion=dashboard" style="border-right: 1px solid rgba(255,255,255,0.2); padding-right: 1.5rem;">
+            <div class="lh-1">
+                <div class="fw-bold fs-5">UPDS</div>
+                <div style="font-size: 0.65rem; letter-spacing: 1px; color: #a3c2e0;">SEDE TARIJA</div>
+            </div>
+        </a>
+        
+        <button class="navbar-toggler border-plano" type="button" data-bs-toggle="collapse" data-bs-target="#menuEstudiante">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="menuEstudiante">
+            <!-- Menú Principal Estudiante (En orden estricto) -->
+            <ul class="navbar-nav me-auto align-items-center">
+                
+                <!-- 1. MI PERFIL -->
+                <li class="nav-item">
+                    <a class="nav-link px-3 text-white <?php echo ($seccion_actual === 'dashboard') ? 'fw-bold border-bottom border-3 border-white' : ''; ?>" 
+                       href="index.php?seccion=dashboard">
+                       <i class="far fa-id-card me-1"></i> Mi Perfil
+                    </a>
+                </li>
+                
+                <!-- 2. SOLICITAR TUTORÍA -->
+                <li class="nav-item">
+                    <a class="nav-link px-3 text-white <?php echo ($seccion_actual === 'cajon2') ? 'fw-bold border-bottom border-3 border-white' : ''; ?>" 
+                       href="index.php?seccion=cajon2">
+                       <i class="fas fa-plus-square me-1"></i> Solicitar Tutoría
+                    </a>
+                </li>
+
+                <!-- 3. MIS TUTORÍAS -->
+                <li class="nav-item">
+                    <a class="nav-link px-3 text-white <?php echo ($seccion_actual === 'mistutorias') ? 'fw-bold border-bottom border-3 border-white' : ''; ?>" 
+                       href="index.php?seccion=mistutorias">
+                       <i class="far fa-calendar-check me-1"></i> Mis Tutorías
+                    </a>
+                </li>
+                
+                <!-- 4. SEGUIMIENTO -->
+                <li class="nav-item">
+                    <a class="nav-link px-3 text-white <?php echo ($seccion_actual === 'cajon3') ? 'fw-bold border-bottom border-3 border-white' : ''; ?>" 
+                       href="index.php?seccion=cajon3">
+                       <i class="fas fa-history me-1"></i> Seguimiento
+                    </a>
+                </li>
+
+            </ul>
+
+            <!-- Menú Derecho: Notificaciones y Perfil -->
+            <div class="d-flex align-items-center text-white">
+                
+                <!-- Campana de Notificaciones -->
+                <a href="#" class="position-relative me-4 text-white text-decoration-none hover-elevate" title="Notificaciones">
+                    <i class="far fa-bell fa-lg"></i>
+                </a>
+
+                <!-- Avatar Circular -->
+                <div class="rounded-circle bg-light text-institucional d-flex justify-content-center align-items-center me-2 fw-bold shadow-sm" style="width: 38px; height: 38px; font-size: 0.9rem;">
+                    <?php echo $iniciales; ?>
+                </div>
+
+                <!-- Nombre y Rol -->
+                <div class="text-end me-4 lh-1">
+                    <div class="fw-semibold" style="font-size: 0.9rem;">
+                        <?php echo htmlspecialchars(explode(' ', $nombre_usuario)[0] . ' ' . explode(' ', $apellido_usuario)[0]); ?>
+                    </div>
+                    <div style="font-size: 0.75rem; color: #a3c2e0; margin-top: 2px;">
+                        Estudiante
+                    </div>
+                </div>
+                
+                <!-- Botón de Salida -->
+                <a href="../../controllers/LogoutController.php" class="btn btn-outline-light btn-sm border-plano">
+                    <i class="fas fa-sign-out-alt me-1"></i> Salir
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
