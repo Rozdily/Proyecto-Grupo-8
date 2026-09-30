@@ -1,234 +1,216 @@
 <?php
 /**
- * ARCHIVO: views/estudiante/mistutorias/index.php
- * Vista de Mis Tutorías (Resumen Estadístico y Top 5 recientes).
+ * ARCHIVO: views/estudiante/cajon3/index.php
+ * Vista de Seguimiento: Solicitudes Pendientes e Historial de Tutorías (Grupal).
  */
 
 require_once __DIR__ . '/../../../config/conexion.php';
 
 $id_usuario = $_SESSION['id_usuario'] ?? 0;
-$nombre_est = $_SESSION['nombre'] ?? 'Estudiante';
-
-// Variables por defecto
-$carrera = "No registrada";
-$semestre = "-";
-$ru = "Sin RU";
 $id_estudiante = 0;
+$pendientes = [];
+$historial = [];
 
-// Inicializar contadores en 0
-$stats = [
-    'espera' => 0, 
-    'confirmadas' => 0, 
-    'completadas' => 0, 
-    'proceso' => 0, 
-    'detenidas' => 0
-];
-$tutorias_recientes = [];
-
-if ($id_usuario > 0 && isset($pdo)) {
+if (isset($pdo) && $id_usuario > 0) {
     try {
-        // 1. Obtener datos del perfil académico del estudiante[cite: 1]
-        $sql_perfil = "SELECT e.id_estudiante, e.registro_universitario, e.semestre, c.nombre_carrera 
-                       FROM estudiantes e 
-                       INNER JOIN carreras c ON e.id_carrera = c.id_carrera 
-                       WHERE e.id_usuario = ?";
-        $stmt = $pdo->prepare($sql_perfil);
-        $stmt->execute([$id_usuario]);
-        
-        if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $id_estudiante = $row['id_estudiante'];
-            $carrera = $row['nombre_carrera'];
-            $semestre = $row['semestre'];
-            $ru = $row['registro_universitario'];
-        }
+        // 1. Obtener ID real del estudiante
+        $stmtEst = $pdo->prepare("SELECT id_estudiante FROM estudiantes WHERE id_usuario = ?");
+        $stmtEst->execute([$id_usuario]);
+        $id_estudiante = $stmtEst->fetchColumn();
 
-        // 2. Calcular estadísticas de tutorías según su estado[cite: 1]
-        if ($id_estudiante > 0) {
-            $sql_stats = "SELECT estado, COUNT(*) as total FROM tutorias WHERE id_estudiante = ? GROUP BY estado";
-            $stmt = $pdo->prepare($sql_stats);
-            $stmt->execute([$id_estudiante]);
+        if ($id_estudiante) {
+            // 2. Consulta general vinculando con la tabla puente
+            $sql = "SELECT t.id_tutoria, t.fecha, t.hora_inicio, t.hora_fin, t.modalidad, 
+                           t.lugar_o_enlace, t.estado, t.motivo_cancelacion, 
+                           te.observaciones_estudiante as observaciones, 
+                           m.nombre_materia, u.nombre as tutor_nom, u.apellido as tutor_ape, 
+                           b.nombre_bloque
+                    FROM tutorias t
+                    JOIN materias m ON t.id_materia = m.id_materia
+                    JOIN tutores tu ON t.id_tutor = tu.id_tutor
+                    JOIN usuarios u ON tu.id_usuario = u.id_usuario
+                    JOIN bloques_horarios b ON t.id_bloque = b.id_bloque
+                    JOIN tutoria_estudiantes te ON t.id_tutoria = te.id_tutoria
+                    WHERE te.id_estudiante = ? 
+                    ORDER BY t.fecha DESC, t.hora_inicio DESC";
             
-            while ($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                switch($r['estado']) {
-                    case 'pendiente': $stats['espera'] = $r['total']; break;
-                    case 'confirmada': $stats['confirmadas'] = $r['total']; break;
-                    case 'realizada': $stats['completadas'] = $r['total']; break;
-                    case 'en_proceso': $stats['proceso'] = $r['total']; break;
-                    case 'detenido': $stats['detenidas'] = $r['total']; break;
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$id_estudiante]);
+            $todas_tutorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // 3. Separar las "Pendientes" del resto del "Historial"
+            foreach ($todas_tutorias as $tut) {
+                if ($tut['estado'] === 'pendiente') {
+                    $pendientes[] = $tut;
+                } else {
+                    $historial[] = $tut;
                 }
             }
-
-            // 3. Obtener las últimas 5 tutorías para la tabla rápida[cite: 1]
-            $sql_tabla = "SELECT t.fecha, t.hora_inicio, t.hora_fin, t.modalidad, t.lugar_o_enlace, t.estado, 
-                                 m.nombre_materia, u.nombre as tutor_nom, u.apellido as tutor_ape, b.nombre_bloque
-                          FROM tutorias t
-                          JOIN materias m ON t.id_materia = m.id_materia
-                          JOIN tutores tu ON t.id_tutor = tu.id_tutor
-                          JOIN usuarios u ON tu.id_usuario = u.id_usuario
-                          JOIN bloques_horarios b ON t.id_bloque = b.id_bloque
-                          WHERE t.id_estudiante = ? 
-                          ORDER BY t.fecha_solicitud DESC LIMIT 5";
-            $stmt = $pdo->prepare($sql_tabla);
-            $stmt->execute([$id_estudiante]);
-            $tutorias_recientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
     } catch (PDOException $e) {
-        // En caso de error de BD, las variables quedan con sus valores por defecto
+        $error_bd = "Error al cargar el historial de tutorías.";
     }
 }
 ?>
 
 <style>
-    .banner-estudiante {
-        background-color: #2b4964; color: white; 
-        border-radius: 8px; padding: 2rem 2.5rem;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    /* Estilos Premium para Cajón 3 */
+    .section-title {
+        font-size: 1.1rem; font-weight: 700; color: #1e293b;
+        margin-bottom: 1.2rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem;
     }
-    .stat-card {
-        background: #fff; border: 1px solid #e2e8f0; border-top-width: 4px;
-        border-radius: 8px; padding: 2rem 1rem; text-align: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: transform 0.2s;
+    
+    /* Tarjetas de Pendientes */
+    .pending-card {
+        background: #fff; border: 1px solid #fde68a; border-left: 4px solid #f59e0b;
+        border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        transition: transform 0.2s;
     }
-    .stat-card:hover { transform: translateY(-3px); }
-    .stat-icon {
-        width: 48px; height: 48px; border-radius: 8px; 
-        display: inline-flex; justify-content: center; align-items: center; 
-        font-size: 1.2rem; margin-bottom: 1rem;
+    .pending-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+    .pending-icon {
+        background: #fef3c7; color: #d97706; width: 45px; height: 45px;
+        border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem;
     }
-    .stat-number { font-size: 2rem; font-weight: 700; color: #1e293b; line-height: 1; margin-bottom: 0.5rem; }
-    .stat-label { font-size: 0.8rem; color: #94a3b8; font-weight: 500; }
 
-    /* Colores */
-    .card-yellow { border-top-color: #fcd34d; } .icon-yellow { background-color: #fef3c7; color: #d97706; }
-    .card-blue { border-top-color: #7dd3fc; } .icon-blue { background-color: #e0f2fe; color: #0284c7; }
-    .card-green { border-top-color: #6ee7b7; } .icon-green { background-color: #d1fae5; color: #059669; }
-    .card-purple { border-top-color: #c4b5fd; } .icon-purple { background-color: #ede9fe; color: #7c3aed; }
-    .card-grey { border-top-color: #94a3b8; } .icon-grey { background-color: #f1f5f9; color: #475569; }
-
-    /* Tabla */
+    /* Tabla de Historial */
     .table-container { border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; overflow: hidden; }
-    .table-header th { font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: 600; padding: 1rem; border-bottom: 2px solid #f1f5f9; }
-    .empty-state { padding: 4rem 2rem; text-align: center; color: #64748b; }
+    .table-header th { font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: 600; padding: 1rem; background-color: #f8fafc; border-bottom: 2px solid #e2e8f0; }
+    .empty-state { padding: 3rem 2rem; text-align: center; color: #64748b; background: #fff; border: 1px dashed #cbd5e1; border-radius: 8px; }
 </style>
 
 <div class="animate__animated animate__fadeIn">
     
-    <!-- BANNER DE BIENVENIDA -->
-    <div class="banner-estudiante d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold mb-2">Mis Tutorías</h2>
-            <p class="mb-0 text-white-50" style="font-size: 0.9rem;">
-                Resumen estadístico de tus solicitudes y avance académico.
-            </p>
+            <h3 class="fw-bold text-dark mb-1">Seguimiento de Tutorías</h3>
+            <p class="text-muted mb-0">Revisa el estado de tus solicitudes y tu historial completo de clases.</p>
         </div>
-        <div>
-            <a href="index.php?seccion=cajon2" class="btn btn-light fw-bold px-4 py-2 text-dark border-plano shadow-sm">
-                <i class="far fa-calendar-plus me-2"></i> Solicitar Tutoría
-            </a>
-        </div>
+        <a href="index.php?seccion=cajon2" class="btn btn-institucional border-plano shadow-sm">
+            <i class="fas fa-plus me-2"></i> Nueva Solicitud
+        </a>
     </div>
 
-    <!-- TARJETAS ESTADÍSTICAS SUPERIORES -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-4">
-            <div class="stat-card card-yellow hover-elevate">
-                <div class="stat-icon icon-yellow"><i class="fas fa-hourglass-half"></i></div>
-                <div class="stat-number"><?php echo $stats['espera']; ?></div>
-                <div class="stat-label">Solicitudes en Espera</div>
-            </div>
+    <!-- SECCIÓN 1: SOLICITUDES PENDIENTES -->
+    <h5 class="section-title"><i class="fas fa-hourglass-half text-warning me-2"></i> Solicitudes en Espera de Confirmación</h5>
+    
+    <?php if (empty($pendientes)): ?>
+        <div class="empty-state mb-5 shadow-sm">
+            <i class="fas fa-check-circle fa-3x text-success opacity-50 mb-3"></i>
+            <h6 class="fw-bold text-dark">¡Todo al día!</h6>
+            <p class="mb-0 text-muted small">No tienes ninguna solicitud pendiente de aprobación por parte de los docentes.</p>
         </div>
-        <div class="col-md-4">
-            <div class="stat-card card-blue hover-elevate">
-                <div class="stat-icon icon-blue"><i class="far fa-calendar-check"></i></div>
-                <div class="stat-number"><?php echo $stats['confirmadas']; ?></div>
-                <div class="stat-label">Tutorías Confirmadas</div>
-            </div>
+    <?php else: ?>
+        <div class="row g-4 mb-5">
+            <?php foreach ($pendientes as $p): ?>
+                <div class="col-md-6 col-lg-4">
+                    <div class="pending-card p-4 h-100">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="pending-icon shadow-sm"><i class="fas fa-clock"></i></div>
+                            <span class="badge bg-warning text-dark border-plano">EN ESPERA</span>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-1"><?php echo htmlspecialchars($p['nombre_materia']); ?></h6>
+                        <p class="text-muted small mb-3">
+                            <i class="fas fa-chalkboard-teacher me-1"></i> Prof. <?php echo htmlspecialchars($p['tutor_nom'] . ' ' . $p['tutor_ape']); ?>
+                        </p>
+                        
+                        <div class="bg-light p-2 rounded border border-light mb-0">
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="far fa-calendar-alt text-secondary me-2" style="width:16px;"></i>
+                                <span class="fw-semibold text-dark" style="font-size:0.9rem;"><?php echo date('d/m/Y', strtotime($p['fecha'])); ?></span>
+                            </div>
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="far fa-clock text-secondary me-2" style="width:16px;"></i>
+                                <span class="text-dark" style="font-size:0.9rem;"><?php echo substr($p['hora_inicio'],0,5).' - '.substr($p['hora_fin'],0,5); ?> (<?php echo htmlspecialchars($p['nombre_bloque']); ?>)</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <?php if($p['modalidad'] == 'virtual'): ?>
+                                    <i class="fas fa-video text-primary me-2" style="width:16px;"></i>
+                                    <span class="text-primary fw-semibold" style="font-size:0.9rem;">Virtual</span>
+                                <?php else: ?>
+                                    <i class="fas fa-building text-success me-2" style="width:16px;"></i>
+                                    <span class="text-success fw-semibold" style="font-size:0.9rem;">Presencial</span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
         </div>
-        <div class="col-md-4">
-            <div class="stat-card card-green hover-elevate">
-                <div class="stat-icon icon-green"><i class="fas fa-medal"></i></div>
-                <div class="stat-number"><?php echo $stats['completadas']; ?></div>
-                <div class="stat-label">Tutorías Completadas</div>
-            </div>
-        </div>
-    </div>
+    <?php endif; ?>
 
-    <!-- TARJETAS ESTADÍSTICAS INFERIORES -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-6">
-            <div class="stat-card card-purple hover-elevate">
-                <div class="stat-icon icon-purple"><i class="fas fa-sync-alt"></i></div>
-                <div class="stat-number"><?php echo $stats['proceso']; ?></div>
-                <div class="stat-label">Tutorías En Proceso</div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="stat-card card-grey hover-elevate">
-                <div class="stat-icon icon-grey"><i class="fas fa-pause"></i></div>
-                <div class="stat-number"><?php echo $stats['detenidas']; ?></div>
-                <div class="stat-label">Tutorías Detenidas</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- TABLA DE SOLICITUDES RECIENTES -->
-    <div class="table-container mb-3 shadow-sm">
-        <div class="px-4 py-3 border-bottom d-flex justify-content-between align-items-center">
-            <h6 class="mb-0 fw-bold text-dark"><i class="far fa-clock me-2"></i> Mis Solicitudes Recientes (Top 5)</h6>
-            <a href="index.php?seccion=cajon3" class="btn btn-sm btn-outline-primary border-plano">Ver todo el historial</a>
-        </div>
+    <!-- SECCIÓN 2: HISTORIAL COMPLETO -->
+    <h5 class="section-title mt-2"><i class="fas fa-history text-secondary me-2"></i> Historial Completo</h5>
+    
+    <div class="table-container shadow-sm mb-4">
         <div class="table-responsive">
-            <table class="table mb-0 align-middle">
-                <thead class="table-light">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
                     <tr class="table-header">
                         <th class="ps-4">Fecha y Horario</th>
-                        <th>Materia</th>
-                        <th>Docente Tutor</th>
+                        <th>Materia y Docente</th>
                         <th>Modalidad / Lugar</th>
                         <th>Estado</th>
+                        <th>Detalles</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (empty($tutorias_recientes)): ?>
+                    <?php if (empty($historial)): ?>
                         <tr>
                             <td colspan="5">
-                                <div class="empty-state">
-                                    <i class="far fa-calendar-plus fa-3x text-secondary opacity-50 mb-3"></i>
-                                    <p class="mb-0">No tienes solicitudes de tutoría registradas. Puedes solicitar tu primera sesión haciendo clic en <strong>Solicitar Tutoría</strong>.</p>
+                                <div class="empty-state border-0">
+                                    <i class="fas fa-folder-open fa-3x text-secondary opacity-50 mb-3"></i>
+                                    <p class="mb-0">Aún no tienes un historial de tutorías registradas.</p>
                                 </div>
                             </td>
                         </tr>
                     <?php else: ?>
-                        <?php foreach($tutorias_recientes as $t): 
+                        <?php foreach ($historial as $h): 
+                            // Colores de estado
                             $badge_class = 'bg-secondary';
-                            if($t['estado'] == 'pendiente') $badge_class = 'bg-warning text-dark';
-                            if($t['estado'] == 'confirmada') $badge_class = 'bg-info text-white';
-                            if($t['estado'] == 'realizada') $badge_class = 'bg-success';
-                            if($t['estado'] == 'cancelada') $badge_class = 'bg-danger';
-                            if($t['estado'] == 'en_proceso') $badge_class = 'bg-primary';
+                            if($h['estado'] == 'confirmada') $badge_class = 'bg-info text-white';
+                            if($h['estado'] == 'realizada') $badge_class = 'bg-success';
+                            if($h['estado'] == 'cancelada') $badge_class = 'bg-danger';
+                            if($h['estado'] == 'en_proceso') $badge_class = 'bg-primary';
                         ?>
                         <tr>
                             <td class="ps-4 py-3">
-                                <div class="fw-bold text-dark"><?php echo date('d/m/Y', strtotime($t['fecha'])); ?></div>
-                                <small class="text-muted"><?php echo substr($t['hora_inicio'], 0, 5) . ' - ' . substr($t['hora_fin'], 0, 5); ?> (<?php echo htmlspecialchars($t['nombre_bloque']); ?>)</small>
-                            </td>
-                            <td class="fw-semibold text-secondary"><?php echo htmlspecialchars($t['nombre_materia']); ?></td>
-                            <td>
-                                <i class="fas fa-chalkboard-teacher text-primary me-1"></i> 
-                                <?php echo htmlspecialchars($t['tutor_nom'] . ' ' . $t['tutor_ape']); ?>
+                                <div class="fw-bold text-dark"><?php echo date('d/m/Y', strtotime($h['fecha'])); ?></div>
+                                <small class="text-muted"><?php echo substr($h['hora_inicio'],0,5).' - '.substr($h['hora_fin'],0,5); ?></small>
                             </td>
                             <td>
-                                <?php if($t['modalidad'] == 'virtual'): ?>
-                                    <span class="badge border border-secondary text-secondary bg-light"><i class="fas fa-video me-1"></i> Virtual</span>
+                                <div class="fw-semibold text-dark"><?php echo htmlspecialchars($h['nombre_materia']); ?></div>
+                                <small class="text-muted"><i class="fas fa-user-tie me-1"></i> <?php echo htmlspecialchars($h['tutor_nom'].' '.$h['tutor_ape']); ?></small>
+                            </td>
+                            <td>
+                                <?php if($h['modalidad'] == 'virtual'): ?>
+                                    <span class="badge bg-light text-primary border"><i class="fas fa-video me-1"></i> Virtual</span>
+                                    <?php if(!empty($h['lugar_o_enlace']) && $h['lugar_o_enlace'] != 'Por asignar' && $h['estado'] != 'cancelada'): ?>
+                                        <br><a href="<?php echo htmlspecialchars($h['lugar_o_enlace']); ?>" target="_blank" class="small mt-1 d-inline-block text-truncate" style="max-width:180px;"><i class="fas fa-external-link-alt me-1"></i> Unirse a reunión</a>
+                                    <?php endif; ?>
                                 <?php else: ?>
-                                    <span class="badge border border-secondary text-secondary bg-light"><i class="fas fa-building me-1"></i> Presencial</span>
+                                    <span class="badge bg-light text-success border"><i class="fas fa-building me-1"></i> Presencial</span>
+                                    <?php if(!empty($h['lugar_o_enlace']) && $h['lugar_o_enlace'] != 'Por asignar' && $h['estado'] != 'cancelada'): ?>
+                                        <br><small class="text-muted d-inline-block mt-1"><i class="fas fa-map-marker-alt me-1 text-danger"></i> <?php echo htmlspecialchars($h['lugar_o_enlace']); ?></small>
+                                    <?php endif; ?>
                                 <?php endif; ?>
-                                <br><small class="text-muted d-inline-block mt-1 text-truncate" style="max-width:150px;" title="<?php echo htmlspecialchars($t['lugar_o_enlace']); ?>"><?php echo htmlspecialchars($t['lugar_o_enlace']); ?></small>
                             </td>
                             <td>
                                 <span class="badge <?php echo $badge_class; ?> px-2 py-1 border-plano">
-                                    <?php echo strtoupper($t['estado']); ?>
+                                    <?php echo strtoupper($h['estado']); ?>
                                 </span>
+                            </td>
+                            <td>
+                                <?php if($h['estado'] == 'cancelada' && !empty($h['motivo_cancelacion'])): ?>
+                                    <button type="button" class="btn btn-sm btn-outline-danger border-plano" data-bs-toggle="tooltip" title="<?php echo htmlspecialchars($h['motivo_cancelacion']); ?>">
+                                        <i class="fas fa-info-circle me-1"></i> Motivo
+                                    </button>
+                                <?php elseif(!empty($h['observaciones'])): ?>
+                                    <button type="button" class="btn btn-sm btn-light border border-plano text-muted" data-bs-toggle="tooltip" title="<?php echo htmlspecialchars($h['observaciones']); ?>">
+                                        <i class="far fa-comment-alt"></i> Mi nota
+                                    </button>
+                                <?php else: ?>
+                                    <span class="text-muted small">-</span>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -238,3 +220,13 @@ if ($id_usuario > 0 && isset($pdo)) {
         </div>
     </div>
 </div>
+
+<script>
+// Activar tooltips de Bootstrap para ver los motivos de cancelación o notas
+document.addEventListener('DOMContentLoaded', function () {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+});
+</script>

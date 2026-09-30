@@ -1,7 +1,7 @@
 <?php
 /**
  * ARCHIVO: views/tutor/mistutorias/index.php
- * Vista de Tutorías activas del docente con opción a salir/cancelar.
+ * Vista de Tutorías activas del docente con opción a salir/cancelar (Soporte Grupal 1:N).
  */
 
 require_once __DIR__ . '/../../../config/conexion.php';
@@ -17,16 +17,19 @@ if ($id_usuario > 0 && isset($pdo)) {
         $id_tutor = $stmtTut->fetchColumn();
 
         if ($id_tutor) {
-            // Obtener tutorías confirmadas o en proceso
+            // Consulta adaptada a tutoria_estudiantes con agregación grupal
             $sql = "SELECT t.id_tutoria, t.fecha, t.hora_inicio, t.hora_fin, t.modalidad, t.lugar_o_enlace, t.estado, 
-                           m.nombre_materia, u.nombre as est_nom, u.apellido as est_ape, u.correo as est_correo, e.registro_universitario,
-                           b.nombre_bloque
+                           m.nombre_materia, b.nombre_bloque,
+                           COUNT(te.id_estudiante) as total_alumnos,
+                           GROUP_CONCAT(CONCAT(u.nombre, ' ', u.apellido, ' (RU: ', e.registro_universitario, ')') SEPARATOR '||') as lista_estudiantes
                     FROM tutorias t
                     JOIN materias m ON t.id_materia = m.id_materia
-                    JOIN estudiantes e ON t.id_estudiante = e.id_estudiante
-                    JOIN usuarios u ON e.id_usuario = u.id_usuario
                     JOIN bloques_horarios b ON t.id_bloque = b.id_bloque
+                    LEFT JOIN tutoria_estudiantes te ON t.id_tutoria = te.id_tutoria
+                    LEFT JOIN estudiantes e ON te.id_estudiante = e.id_estudiante
+                    LEFT JOIN usuarios u ON e.id_usuario = u.id_usuario
                     WHERE t.id_tutor = ? AND t.estado IN ('confirmada', 'en_proceso')
+                    GROUP BY t.id_tutoria
                     ORDER BY t.fecha ASC, t.hora_inicio ASC";
             
             $stmt = $pdo->prepare($sql);
@@ -57,7 +60,7 @@ if ($id_usuario > 0 && isset($pdo)) {
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="fw-bold text-dark mb-1">Mis Tutorías Activas</h3>
-            <p class="text-muted mb-0">Listado de clases confirmadas y en proceso con tus estudiantes asignados.</p>
+            <p class="text-muted mb-0">Listado de clases confirmadas y en proceso con tus grupos asignados.</p>
         </div>
     </div>
 
@@ -94,14 +97,26 @@ if ($id_usuario > 0 && isset($pdo)) {
                         </div>
                         
                         <div class="bg-light p-3 rounded border border-light mb-3 flex-grow-1">
-                            <!-- Datos del Estudiante -->
                             <div class="mb-3 border-bottom pb-2">
-                                <div class="text-secondary small fw-bold text-uppercase mb-1">Estudiante Participante</div>
-                                <div class="fw-semibold text-dark"><i class="fas fa-user-graduate text-institucional me-2"></i><?php echo htmlspecialchars($tut['est_nom'] . ' ' . $tut['est_ape']); ?></div>
-                                <div class="small text-muted ms-4">RU: <?php echo htmlspecialchars($tut['registro_universitario']); ?> | <?php echo htmlspecialchars($tut['est_correo']); ?></div>
+                                <div class="text-secondary small fw-bold text-uppercase mb-2">
+                                    Estudiantes Participantes (<span class="text-dark"><?php echo $tut['total_alumnos']; ?></span>)
+                                </div>
+                                <ul class="list-unstyled mb-0 ms-1">
+                                    <?php if (!empty($tut['lista_estudiantes'])): ?>
+                                        <?php 
+                                        $alumnos = explode('||', $tut['lista_estudiantes']);
+                                        foreach($alumnos as $alumno): 
+                                        ?>
+                                            <li class="small text-dark mb-2 border-bottom border-light pb-1">
+                                                <i class="fas fa-user-graduate text-institucional me-2"></i><?php echo htmlspecialchars($alumno); ?>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <li class="small text-muted fst-italic">Sin estudiantes inscritos aún.</li>
+                                    <?php endif; ?>
+                                </ul>
                             </div>
 
-                            <!-- Fechas y Enlace -->
                             <div class="row g-2 text-dark small">
                                 <div class="col-6">
                                     <i class="far fa-calendar-alt text-institucional me-1"></i> <strong>Fecha:</strong><br>
@@ -109,7 +124,7 @@ if ($id_usuario > 0 && isset($pdo)) {
                                 </div>
                                 <div class="col-6">
                                     <i class="far fa-clock text-institucional me-1"></i> <strong>Horario:</strong><br>
-                                    <?php echo substr($tut['hora_inicio'],0,5).' - '.substr($tut['hora_fin'],0,5); ?>
+                                    <?php echo substr($tut['hora_inicio'], 0, 5) . ' - ' . substr($tut['hora_fin'], 0, 5); ?>
                                 </div>
                                 <div class="col-12 mt-2 pt-2 border-top">
                                     <i class="fas fa-map-marker-alt text-institucional me-1"></i> <strong>Lugar / Enlace:</strong><br>
@@ -118,7 +133,6 @@ if ($id_usuario > 0 && isset($pdo)) {
                             </div>
                         </div>
 
-                        <!-- Botón de Salir -->
                         <div class="d-flex justify-content-end mt-auto">
                             <button type="button" class="btn btn-outline-danger border-plano" 
                                     onclick="abrirModalSalir(<?php echo $tut['id_tutoria']; ?>, '<?php echo htmlspecialchars($tut['nombre_materia']); ?>')">
@@ -146,13 +160,13 @@ if ($id_usuario > 0 && isset($pdo)) {
                     <input type="hidden" name="id_tutoria" id="cancelar_id_tutoria">
                     
                     <div class="alert alert-warning border-plano small">
-                        <i class="fas fa-exclamation-triangle me-1"></i> Estás a punto de cancelar tu participación en la tutoría de <strong id="nombre_materia_cancelar"></strong>. Esta acción notificará al estudiante y no se puede deshacer.
+                        <i class="fas fa-exclamation-triangle me-1"></i> Estás a punto de cancelar tu participación en la tutoría de <strong id="nombre_materia_cancelar"></strong>. Esta acción notificará a los estudiantes del grupo y no se puede deshacer.
                     </div>
 
                     <div class="mb-4">
                         <label class="form-label fw-bold small text-secondary">Motivo de salida <span class="text-danger">*</span></label>
                         <textarea class="form-control border-plano" name="motivo_cancelacion" rows="3" required 
-                                  placeholder="Ej: Inconveniente personal de fuerza mayor, pido disculpas."></textarea>
+                                  placeholder="Ej: Inconveniente personal de fuerza mayor, pido disculpas a los estudiantes."></textarea>
                         <div class="form-text mt-1 text-danger">Debes justificar el motivo por el cual abandonas la sesión.</div>
                     </div>
 

@@ -1,7 +1,7 @@
 <?php
 /**
  * ARCHIVO: views/tutor/dashboard/index.php
- * Vista Principal del Tutor (Resumen y Agenda).
+ * Vista Principal del Tutor (Resumen y Agenda adaptada a Grupos).
  */
 
 require_once __DIR__ . '/../../../config/conexion.php';
@@ -38,16 +38,19 @@ if ($id_usuario > 0 && isset($pdo)) {
                 if ($r['estado'] === 'realizada') $stats['completadas'] = $r['total'];
             }
 
-            // 3. Obtener la agenda (Se quitó el filtro de fecha actual para poder ver los datos de prueba)
-            $sql_agenda = "SELECT t.fecha, t.hora_inicio, t.hora_fin, t.modalidad, t.lugar_o_enlace, 
-                                  m.nombre_materia, u.nombre as est_nom, u.apellido as est_ape, 
-                                  b.nombre_bloque
+            // 3. Obtener la agenda adaptada a grupos (1 a N)
+            $sql_agenda = "SELECT t.id_tutoria, t.fecha, t.hora_inicio, t.hora_fin, t.modalidad, t.lugar_o_enlace, 
+                                  m.nombre_materia, b.nombre_bloque,
+                                  COUNT(te.id_estudiante) as total_alumnos,
+                                  GROUP_CONCAT(CONCAT(u.nombre, ' ', u.apellido) SEPARATOR ', ') as lista_estudiantes
                            FROM tutorias t
                            JOIN materias m ON t.id_materia = m.id_materia
-                           JOIN estudiantes e ON t.id_estudiante = e.id_estudiante
-                           JOIN usuarios u ON e.id_usuario = u.id_usuario
                            JOIN bloques_horarios b ON t.id_bloque = b.id_bloque
+                           LEFT JOIN tutoria_estudiantes te ON t.id_tutoria = te.id_tutoria
+                           LEFT JOIN estudiantes e ON te.id_estudiante = e.id_estudiante
+                           LEFT JOIN usuarios u ON e.id_usuario = u.id_usuario
                            WHERE t.id_tutor = ? AND t.estado = 'confirmada'
+                           GROUP BY t.id_tutoria
                            ORDER BY t.fecha DESC, t.hora_inicio ASC LIMIT 5";
             
             $stmtAgenda = $pdo->prepare($sql_agenda);
@@ -192,7 +195,8 @@ if ($id_usuario > 0 && isset($pdo)) {
                                         </span>
                                     </div>
                                     <div class="text-muted small mb-1">
-                                        <i class="fas fa-user-graduate me-1"></i> Estudiante: <strong><?php echo htmlspecialchars($agenda['est_nom'] . ' ' . $agenda['est_ape']); ?></strong>
+                                        <i class="fas fa-users me-1"></i> <strong><?php echo $agenda['total_alumnos']; ?> Estudiante(s):</strong> 
+                                        <span class="fst-italic"><?php echo htmlspecialchars($agenda['lista_estudiantes'] ?? 'Sin inscritos'); ?></span>
                                     </div>
                                     <div class="d-flex align-items-center small text-secondary gap-3">
                                         <span><i class="far fa-clock me-1"></i> <?php echo substr($agenda['hora_inicio'], 0, 5) . ' - ' . substr($agenda['hora_fin'], 0, 5); ?></span>

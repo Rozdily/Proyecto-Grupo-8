@@ -14,7 +14,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Validar que el usuario que hace la petición sea realmente un Estudiante (id_rol = 3)[cite: 6]
+// Validar que el usuario que hace la petición sea realmente un Estudiante (id_rol = 3)
 if (!isset($_SESSION['id_rol']) || $_SESSION['id_rol'] != 3) {
     echo json_encode(['error' => 'Acceso denegado o sesión expirada.']);
     exit();
@@ -30,7 +30,6 @@ if ($accion === 'obtener_tutores_materia') {
 
     if ($id_materia > 0) {
         try {
-            // Unir la tabla tutor_materia con tutores y usuarios para sacar los nombres[cite: 6]
             $sql = "SELECT t.id_tutor, CONCAT(u.nombre, ' ', u.apellido) AS nombre_completo 
                     FROM tutor_materia tm 
                     INNER JOIN tutores t ON tm.id_tutor = t.id_tutor 
@@ -53,10 +52,9 @@ if ($accion === 'obtener_tutores_materia') {
 }
 
 // ============================================================================
-// ACCIÓN 2: GUARDAR LA NUEVA SOLICITUD DE TUTORÍA (CON REGLAS DE FECHA)
+// ACCIÓN 2: GUARDAR LA NUEVA SOLICITUD DE TUTORÍA (LÓGICA DE GRUPOS)
 // ============================================================================
 if ($accion === 'solicitar_tutoria') {
-    // Recoger los datos enviados por POST
     $id_estudiante = $_POST['id_estudiante'] ?? 0;
     $id_materia    = $_POST['id_materia'] ?? 0;
     $id_tutor      = $_POST['id_tutor'] ?? 0;
@@ -65,7 +63,6 @@ if ($accion === 'solicitar_tutoria') {
     $modalidad     = $_POST['modalidad'] ?? 'presencial';
     $observaciones = trim($_POST['observaciones'] ?? '');
 
-    // Validaciones básicas de seguridad
     if (empty($id_estudiante) || empty($id_materia) || empty($id_tutor) || empty($fecha) || empty($id_bloque)) {
         echo json_encode(['error' => 'Todos los campos obligatorios deben estar completos.']);
         exit();
@@ -73,10 +70,9 @@ if ($accion === 'solicitar_tutoria') {
 
     try {
         // --- 1. VALIDAR REGLAS DE FECHAS (Escudo Backend) ---
-        $min_dias = 2; // Valores por defecto
+        $min_dias = 2; 
         $max_dias = 60;
         
-        // Consultar los límites reales configurados en el Cajón 4[cite: 12]
         $stmtP = $pdo->query("SELECT clave, valor FROM parametros_mg WHERE clave IN ('MIN_DIAS_ANTICIPACION_TUTORIA', 'MAX_DIAS_ANTICIPACION_TUTORIA')");
         while ($row = $stmtP->fetch(PDO::FETCH_ASSOC)) {
             if ($row['clave'] === 'MIN_DIAS_ANTICIPACION_TUTORIA') $min_dias = (int)$row['valor'];
@@ -86,14 +82,12 @@ if ($accion === 'solicitar_tutoria') {
         $fecha_min_permitida = date('Y-m-d', strtotime("+$min_dias days"));
         $fecha_max_permitida = date('Y-m-d', strtotime("+$max_dias days"));
 
-        // Bloquear si la fecha está fuera del rango permitido
         if ($fecha < $fecha_min_permitida || $fecha > $fecha_max_permitida) {
             echo json_encode(['error' => "Por reglamento, la fecha de solicitud debe estar comprendida entre el " . date('d/m/Y', strtotime($fecha_min_permitida)) . " y el " . date('d/m/Y', strtotime($fecha_max_permitida)) . "."]);
             exit();
         }
-        // ----------------------------------------------------
 
-        // 2. Obtener las horas exactas del bloque horario seleccionado[cite: 6]
+        // 2. Obtener las horas exactas del bloque horario seleccionado
         $stmtB = $pdo->prepare("SELECT hora_inicio, hora_fin FROM bloques_horarios WHERE id_bloque = ?");
         $stmtB->execute([$id_bloque]);
         $bloque = $stmtB->fetch(PDO::FETCH_ASSOC);
@@ -103,50 +97,73 @@ if ($accion === 'solicitar_tutoria') {
             exit();
         }
 
-        // 3. Obtener el Periodo Académico Activo (Ej. I-2026)[cite: 6]
-        $stmtPer = $pdo->query("SELECT codigo FROM periodos_tutoria WHERE activo = 1 LIMIT 1");
-        $periodo_activo = $stmtPer->fetchColumn();
-        if (!$periodo_activo) {
-            $periodo_activo = 'II-2026'; // Fallback de emergencia
-        }
-
-        // 4. Validar que el estudiante no tenga ya una tutoría en esa misma fecha y bloque[cite: 6]
-        $stmtCheck = $pdo->prepare("SELECT id_tutoria FROM tutorias WHERE id_estudiante = ? AND fecha = ? AND id_bloque = ? AND estado NOT IN ('cancelada', 'detenido')");
+        // 3. Validar que el estudiante no tenga ya una clase cruzada (Usando la tabla puente)
+        $stmtCheck = $pdo->prepare("
+            SELECT t.id_tutoria FROM tutorias t 
+            JOIN tutoria_estudiantes te ON t.id_tutoria = te.id_tutoria
+            WHERE te.id_estudiante = ? AND t.fecha = ? AND t.id_bloque = ? AND t.estado NOT IN ('cancelada', 'detenido')
+        ");
         $stmtCheck->execute([$id_estudiante, $fecha, $id_bloque]);
         if ($stmtCheck->rowCount() > 0) {
-            echo json_encode(['error' => 'Ya tienes una solicitud o tutoría programada para esa misma fecha y horario.']);
+            echo json_encode(['error' => 'Ya tienes una solicitud o estás inscrito en una tutoría para esa misma fecha y horario.']);
             exit();
         }
 
-        // 5. Inserción a la base de datos[cite: 6]
-        // Se inserta con estado 'pendiente', lugar 'Por asignar' (el tutor lo definirá al confirmar)[cite: 6]
-        $sqlInsert = "INSERT INTO tutorias 
-                      (id_estudiante, id_tutor, id_materia, id_bloque, fecha, periodo, hora_inicio, hora_fin, modalidad, lugar_o_enlace, estado, observaciones, motivo_cancelacion) 
-                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Por asignar', 'pendiente', ?, '')";
-        
-        $stmtInsert = $pdo->prepare($sqlInsert);
-        $stmtInsert->execute([
-            $id_estudiante, 
-            $id_tutor, 
-            $id_materia, 
-            $id_bloque, 
-            $fecha, 
-            $periodo_activo, 
-            $bloque['hora_inicio'], 
-            $bloque['hora_fin'], 
-            $modalidad, 
-            $observaciones
-        ]);
+        // 4. Iniciar Transacción para inserción grupal
+        $pdo->beginTransaction();
 
-        echo json_encode(['exito' => true, 'mensaje' => 'Solicitud guardada correctamente.']);
+        // 5. Verificar si el tutor YA TIENE una sesión en ese bloque
+        $stmtTutoria = $pdo->prepare("SELECT id_tutoria, id_materia FROM tutorias WHERE id_tutor = ? AND fecha = ? AND id_bloque = ? AND estado IN ('pendiente', 'confirmada')");
+        $stmtTutoria->execute([$id_tutor, $fecha, $id_bloque]);
+        $tutoria_existente = $stmtTutoria->fetch(PDO::FETCH_ASSOC);
+
+        if ($tutoria_existente) {
+            // El tutor ya tiene una clase. ¿Es de la misma materia?
+            if ($tutoria_existente['id_materia'] != $id_materia) {
+                $pdo->rollBack();
+                echo json_encode(['error' => 'El tutor ya tiene agendada una clase para otra materia en ese horario. Por favor selecciona otro horario o tutor.']);
+                exit();
+            }
+            // Mismo tutor, misma materia, misma hora -> Inscribir al estudiante al grupo existente
+            $id_tutoria_final = $tutoria_existente['id_tutoria'];
+        } else {
+            // No hay clase programada, creamos el contenedor de la sesión en la tabla principal
+            $stmtPer = $pdo->query("SELECT codigo FROM periodos_tutoria WHERE activo = 1 LIMIT 1");
+            $periodo_activo = $stmtPer->fetchColumn() ?: 'II-2026';
+
+            $sqlInsert = "INSERT INTO tutorias 
+                          (id_tutor, id_materia, id_bloque, fecha, periodo, hora_inicio, hora_fin, modalidad, lugar_o_enlace, estado, motivo_cancelacion) 
+                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Por asignar', 'pendiente', '')";
+            
+            $stmtInsert = $pdo->prepare($sqlInsert);
+            $stmtInsert->execute([
+                $id_tutor, $id_materia, $id_bloque, $fecha, $periodo_activo, 
+                $bloque['hora_inicio'], $bloque['hora_fin'], $modalidad
+            ]);
+            
+            $id_tutoria_final = $pdo->lastInsertId();
+        }
+
+        // 6. Inscribir al estudiante en la sesión (Tabla puente)
+        $sqlInscribir = "INSERT INTO tutoria_estudiantes (id_tutoria, id_estudiante, observaciones_estudiante) VALUES (?, ?, ?)";
+        $stmtInscribir = $pdo->prepare($sqlInscribir);
+        $stmtInscribir->execute([$id_tutoria_final, $id_estudiante, $observaciones]);
+
+        $pdo->commit();
+
+        echo json_encode(['exito' => true, 'mensaje' => 'Solicitud procesada correctamente. Te has inscrito en la tutoría.']);
 
     } catch (PDOException $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         echo json_encode(['error' => 'Fallo interno en la base de datos al guardar la solicitud.']);
     }
     exit();
 }
+
 // ============================================================================
-// ACCIÓN 3: ACTUALIZAR PERFIL DEL ESTUDIANTE (CON VALIDACIÓN DE DUPLICADOS)
+// ACCIÓN 3: ACTUALIZAR PERFIL DEL ESTUDIANTE
 // ============================================================================
 if ($accion === 'actualizar_perfil') {
     $id_usuario = $_SESSION['id_usuario'] ?? 0;
@@ -167,7 +184,6 @@ if ($accion === 'actualizar_perfil') {
     }
 
     try {
-        // 1. Verificar que el correo o usuario no estén siendo usados por OTRA persona
         $sqlCheck = "SELECT correo, usuario FROM usuarios WHERE (correo = ? OR usuario = ?) AND id_usuario != ?";
         $stmtCheck = $pdo->prepare($sqlCheck);
         $stmtCheck->execute([$correo, $usuario, $id_usuario]);
@@ -183,21 +199,17 @@ if ($accion === 'actualizar_perfil') {
             }
         }
 
-        // 2. Preparar actualización
         if (!empty($contrasena)) {
-            // Actualizar TODO (incluida contraseña)
             $hash = password_hash($contrasena, PASSWORD_DEFAULT);
             $sqlUpdate = "UPDATE usuarios SET correo = ?, usuario = ?, telefono = ?, contrasena_hash = ? WHERE id_usuario = ?";
             $stmtUpdate = $pdo->prepare($sqlUpdate);
             $stmtUpdate->execute([$correo, $usuario, $telefono, $hash, $id_usuario]);
         } else {
-            // Actualizar solo datos (sin tocar contraseña)
             $sqlUpdate = "UPDATE usuarios SET correo = ?, usuario = ?, telefono = ? WHERE id_usuario = ?";
             $stmtUpdate = $pdo->prepare($sqlUpdate);
             $stmtUpdate->execute([$correo, $usuario, $telefono, $id_usuario]);
         }
 
-        // 3. Actualizar la variable de sesión por si cambió el nombre de usuario
         $_SESSION['usuario'] = $usuario;
 
         echo json_encode(['exito' => true]);
@@ -207,6 +219,7 @@ if ($accion === 'actualizar_perfil') {
     }
     exit();
 }
+
 // Acción por defecto si no reconoce ninguna
 echo json_encode(['error' => 'Acción no reconocida por el servidor.']);
 exit();

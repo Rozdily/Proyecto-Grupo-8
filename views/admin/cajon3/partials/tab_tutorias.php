@@ -1,7 +1,7 @@
 <?php
 /**
  * ARCHIVO: views/admin/cajon3/partials/tab_tutorias.php
- * Interfaz para Programación de Tutorías de Materias (Tabla: tutorias).
+ * Interfaz para Programación de Tutorías de Materias (Gestión de Grupos).
  */
 
 // Estas variables vendrán del index.php principal del Cajón 3
@@ -20,15 +20,15 @@ $lista_bloques = $lista_bloques ?? [];
         <!-- TOOLBAR -->
         <div class="row mb-3 align-items-center">
             <div class="col-md-4">
-                <h6 class="text-dark mb-0 fw-bold"><i class="fas fa-chalkboard-teacher me-2"></i>Tutorías de Materias</h6>
+                <h6 class="text-dark mb-0 fw-bold"><i class="fas fa-chalkboard-teacher me-2"></i>Sesiones de Tutoría (Grupos)</h6>
             </div>
             <div class="col-md-8 d-flex justify-content-end align-items-center gap-2">
                 <div class="input-group input-group-sm w-50 shadow-sm">
                     <span class="input-group-text bg-white border-plano"><i class="fas fa-search text-muted"></i></span>
-                    <input type="text" id="buscadorTutoriasReg" class="form-control border-plano" placeholder="Buscar estudiante, tutor o materia...">
+                    <input type="text" id="buscadorTutoriasReg" class="form-control border-plano" placeholder="Buscar sesión, tutor o materia...">
                 </div>
                 <button class="btn btn-sm btn-success border-plano shadow-sm" onclick="abrirFormularioTutoriasRegulares('nuevo')">
-                    <i class="fas fa-plus me-1"></i> Agendar Tutoría
+                    <i class="fas fa-plus me-1"></i> Abrir Nueva Sesión
                 </button>
             </div>
         </div>
@@ -40,8 +40,9 @@ $lista_bloques = $lista_bloques ?? [];
                     <thead class="bg-light text-muted small text-uppercase">
                         <tr>
                             <th class="ps-4">Fecha y Hora</th>
-                            <th>Estudiante / Tutor</th>
                             <th>Materia</th>
+                            <th>Tutor Asignado</th>
+                            <th>Asistencia (Grupo)</th>
                             <th>Lugar / Modalidad</th>
                             <th>Estado</th>
                             <th class="text-end pe-4">Acciones</th>
@@ -61,15 +62,20 @@ $lista_bloques = $lista_bloques ?? [];
                                     </td>
                                     
                                     <td class="texto-busqueda-tut-reg">
-                                        <div class="fw-bold text-dark"><i class="fas fa-user-graduate text-muted me-1"></i> <?php echo htmlspecialchars($tut['nombre_estudiante'] ?? 'N/A'); ?></div>
-                                        <div class="small text-muted"><i class="fas fa-chalkboard-teacher text-muted me-1"></i> <?php echo htmlspecialchars($tut['nombre_tutor'] ?? 'N/A'); ?></div>
-                                    </td>
-                                    
-                                    <td class="texto-busqueda-tut-reg">
                                         <div class="fw-bold text-dark text-truncate" style="max-width: 150px;" title="<?php echo htmlspecialchars($tut['nombre_materia'] ?? ''); ?>">
                                             <?php echo htmlspecialchars($tut['nombre_materia'] ?? 'N/A'); ?>
                                         </div>
                                         <div class="small text-muted">Periodo: <?php echo htmlspecialchars($tut['periodo']); ?></div>
+                                    </td>
+                                    
+                                    <td class="texto-busqueda-tut-reg">
+                                        <div class="fw-bold text-dark"><i class="fas fa-chalkboard-teacher text-muted me-1"></i> <?php echo htmlspecialchars($tut['nombre_tutor'] ?? 'N/A'); ?></div>
+                                    </td>
+
+                                    <td>
+                                        <span class="badge bg-light border border-secondary text-secondary" title="<?php echo htmlspecialchars($tut['nombre_estudiante'] ?? 'Sin inscritos'); ?>">
+                                            <i class="fas fa-users me-1"></i> <?php echo $tut['total_alumnos'] ?? 0; ?> Inscrito(s)
+                                        </span>
                                     </td>
                                     
                                     <td>
@@ -114,19 +120,19 @@ $lista_bloques = $lista_bloques ?? [];
                                                     lugar_o_enlace: '<?php echo addslashes($tut['lugar_o_enlace']); ?>',
                                                     estado: '<?php echo $tut['estado']; ?>',
                                                     observaciones: '<?php echo addslashes($tut['observaciones']); ?>'
-                                                })" title="Editar Tutoría">
-                                            <i class="fas fa-edit text-institucional"></i>
+                                                })" title="Editar Configuración de la Sesión">
+                                            <i class="fas fa-cog text-institucional"></i>
                                         </button>
                                         <a href="../../controllers/TutoriaController.php?accion=eliminar&id=<?php echo $tut['id_tutoria']; ?>" 
                                            class="btn btn-sm btn-light border border-plano" 
-                                           onclick="return confirm('¿Confirma que desea borrar esta tutoría?');" title="Borrar">
+                                           onclick="return confirm('¿Confirma que desea borrar toda la sesión? Esto eliminará también a los estudiantes inscritos en este grupo.');" title="Borrar Sesión">
                                             <i class="fas fa-trash-alt text-danger"></i>
                                         </a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <tr id="fila-vacia-tutorias-reg"><td colspan="6" class="text-center py-5 text-muted"><i class="fas fa-book-reader mb-3 d-block fa-2x"></i> No hay tutorías de materias programadas.</td></tr>
+                            <tr id="fila-vacia-tutorias-reg"><td colspan="7" class="text-center py-5 text-muted"><i class="fas fa-book-reader mb-3 d-block fa-2x"></i> No hay sesiones de tutoría programadas.</td></tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
@@ -138,7 +144,7 @@ $lista_bloques = $lista_bloques ?? [];
     <div id="formulario-tutorias-regulares" class="d-none">
         <div class="card border-0 shadow-sm border-plano border-start border-4 border-institucional">
             <div class="card-header bg-white border-bottom border-plano py-3">
-                <h6 class="mb-0 text-institucional fw-bold" id="titulo-form-tutorias-reg"><i class="fas fa-plus-circle me-2"></i>Agendar Nueva Tutoría</h6>
+                <h6 class="mb-0 text-institucional fw-bold" id="titulo-form-tutorias-reg"><i class="fas fa-plus-circle me-2"></i>Abrir Nueva Sesión de Tutoría</h6>
             </div>
             <div class="card-body bg-light p-4">
                 <form action="../../controllers/TutoriaController.php" method="POST">
@@ -148,9 +154,10 @@ $lista_bloques = $lista_bloques ?? [];
                     <div class="row">
                         <!-- Bloque 1: Involucrados -->
                         <div class="col-md-4 mb-3">
-                            <label class="form-label small fw-bold">Estudiante</label>
-                            <select name="id_estudiante" id="treg-estudiante" class="form-select form-select-sm border-plano" required>
-                                <option value="" disabled selected>Seleccione estudiante...</option>
+                            <label class="form-label small fw-bold">Estudiante Inicial (Opcional)</label>
+                            <!-- Se quitó el atributo required para permitir crear sesiones sin estudiantes iniciales -->
+                            <select name="id_estudiante" id="treg-estudiante" class="form-select form-select-sm border-plano">
+                                <option value="" selected>-- Solo abrir la sesión --</option>
                                 <?php foreach($lista_estudiantes as $est): ?>
                                     <option value="<?php echo $est['id_estudiante']; ?>"><?php echo htmlspecialchars($est['nombre_completo'] . ' (' . $est['registro_universitario'] . ')'); ?></option>
                                 <?php endforeach; ?>
@@ -227,14 +234,14 @@ $lista_bloques = $lista_bloques ?? [];
                         </div>
                         
                         <div class="col-12 mb-2">
-                            <label class="form-label small fw-bold">Observaciones (Opcional)</label>
+                            <label class="form-label small fw-bold">Observaciones del Estudiante (Opcional)</label>
                             <textarea name="observaciones" id="treg-observaciones" class="form-control form-control-sm border-plano" rows="2"></textarea>
                         </div>
                     </div>
                     <hr>
                     <div class="d-flex justify-content-end gap-2">
                         <button type="button" class="btn btn-sm btn-secondary border-plano" onclick="cerrarFormularioTutoriasRegulares()">Cancelar</button>
-                        <button type="submit" class="btn btn-sm btn-institucional border-plano"><i class="fas fa-save me-1"></i> Guardar Tutoría</button>
+                        <button type="submit" class="btn btn-sm btn-institucional border-plano"><i class="fas fa-save me-1"></i> Guardar Configuración</button>
                     </div>
                 </form>
             </div>
@@ -256,14 +263,14 @@ $lista_bloques = $lista_bloques ?? [];
             form.reset();
             inputAccion.value = 'crear';
             inputId.value = '';
-            titulo.innerHTML = '<i class="fas fa-plus-circle me-2"></i>Agendar Nueva Tutoría';
+            titulo.innerHTML = '<i class="fas fa-plus-circle me-2"></i>Abrir Nueva Sesión de Tutoría';
             document.getElementById('treg-periodo').value = 'II-2026'; // Valor por defecto
         } else if (accion === 'editar' && datos) {
             inputAccion.value = 'actualizar';
             inputId.value = datos.id_tutoria;
-            titulo.innerHTML = '<i class="fas fa-edit me-2"></i>Editar Tutoría de Materia';
+            titulo.innerHTML = '<i class="fas fa-cog me-2"></i>Editar Configuración de Sesión';
             
-            document.getElementById('treg-estudiante').value = datos.id_estudiante;
+            document.getElementById('treg-estudiante').value = datos.id_estudiante || '';
             document.getElementById('treg-tutor').value = datos.id_tutor;
             document.getElementById('treg-materia').value = datos.id_materia;
             document.getElementById('treg-bloque').value = datos.id_bloque;

@@ -1,12 +1,12 @@
 <?php
 /**
  * ARCHIVO: controllers/TutoriaController.php
- * Controlador para procesar CRUD de Tutorías de Materias con integración de Bitácora (Caja Negra).
+ * Controlador para procesar CRUD de Sesiones de Tutorías (Grupos 1 a N) con integración de Bitácora.
  */
 
 require_once __DIR__ . '/../config/conexion.php';
 require_once __DIR__ . '/../models/tutorias/TutoriaModel/index.php';
-require_once __DIR__ . '/../models/sistema/AuditoriaModel/index.php'; // Inyectamos la Caja Negra
+require_once __DIR__ . '/../models/sistema/AuditoriaModel/index.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -31,11 +31,12 @@ $url_base = "../views/admin/index.php?seccion=cajon3&tab=tutorias";
 switch ($accion) {
     
     // ------------------------------------------------------------------------
-    // CREAR NUEVA TUTORÍA REGULAR
+    // CREAR NUEVA SESIÓN DE TUTORÍA
     // ------------------------------------------------------------------------
     case 'crear':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $id_estudiante  = $_POST['id_estudiante'] ?? null;
+            // El estudiante ahora puede ser nulo al crear la sesión pura
+            $id_estudiante  = $_POST['id_estudiante'] ?? null; 
             $id_tutor       = $_POST['id_tutor'] ?? null;
             $id_materia     = $_POST['id_materia'] ?? null;
             $id_bloque      = $_POST['id_bloque'] ?? null;
@@ -48,8 +49,8 @@ switch ($accion) {
             $estado         = $_POST['estado'] ?? 'pendiente';
             $observaciones  = trim($_POST['observaciones'] ?? '');
 
-            if (!$id_estudiante || !$id_tutor || !$id_materia || !$id_bloque || empty($fecha) || empty($hora_inicio) || empty($hora_fin)) {
-                header("Location: $url_base&error=" . urlencode("Faltan datos obligatorios."));
+            if (!$id_tutor || !$id_materia || !$id_bloque || empty($fecha) || empty($hora_inicio) || empty($hora_fin)) {
+                header("Location: $url_base&error=" . urlencode("Faltan datos obligatorios para crear la sesión."));
                 exit();
             }
 
@@ -59,33 +60,37 @@ switch ($accion) {
             }
 
             try {
-                $tutoriaModel->crear(
+                $creado = $tutoriaModel->crear(
                     $id_estudiante, $id_tutor, $id_materia, $id_bloque, 
                     $fecha, $periodo, $hora_inicio, $hora_fin, 
                     $modalidad, $lugar_o_enlace, $estado, $observaciones
                 );
                 
-                // --- INICIO DE AUDITORÍA ---
-                $nuevo_id = $pdo->lastInsertId(); // Capturamos el ID recién creado
-                $datos_nuevos = [
-                    'id_estudiante' => $id_estudiante, 'id_tutor' => $id_tutor, 
-                    'id_materia' => $id_materia, 'fecha' => $fecha, 
-                    'hora_inicio' => $hora_inicio, 'hora_fin' => $hora_fin, 'estado' => $estado
-                ];
-                $auditoriaModel->registrarAccion($usuario_actual, 'CREAR', 'tutorias', $nuevo_id, [], $datos_nuevos);
-                // --- FIN DE AUDITORÍA ---
+                if ($creado) {
+                    // --- INICIO DE AUDITORÍA ---
+                    $nuevo_id = $pdo->lastInsertId(); // Capturamos el ID recién creado
+                    $datos_nuevos = [
+                        'id_tutor' => $id_tutor, 'id_materia' => $id_materia, 
+                        'fecha' => $fecha, 'hora_inicio' => $hora_inicio, 
+                        'hora_fin' => $hora_fin, 'estado' => $estado, 'id_bloque' => $id_bloque
+                    ];
+                    $auditoriaModel->registrarAccion($usuario_actual, 'CREAR', 'tutorias', $nuevo_id, [], $datos_nuevos);
+                    // --- FIN DE AUDITORÍA ---
 
-                header("Location: $url_base&exito=" . urlencode("Tutoría regular agendada correctamente."));
+                    header("Location: $url_base&exito=" . urlencode("Sesión de tutoría agendada correctamente."));
+                } else {
+                    header("Location: $url_base&error=" . urlencode("Error al guardar la sesión en la base de datos."));
+                }
                 exit();
             } catch (Throwable $e) {
-                header("Location: $url_base&error=" . urlencode("Error interno de BD: " . $e->getMessage()));
+                header("Location: $url_base&error=" . urlencode("Error interno: " . $e->getMessage()));
                 exit();
             }
         }
         break;
 
     // ------------------------------------------------------------------------
-    // ACTUALIZAR TUTORÍA REGULAR EXISTENTE
+    // ACTUALIZAR SESIÓN DE TUTORÍA EXISTENTE
     // ------------------------------------------------------------------------
     case 'actualizar':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -103,8 +108,8 @@ switch ($accion) {
             $estado         = $_POST['estado'] ?? 'pendiente';
             $observaciones  = trim($_POST['observaciones'] ?? '');
 
-            if (!$id_tutoria || !$id_estudiante || !$id_tutor || !$id_materia || empty($fecha) || empty($hora_inicio) || empty($hora_fin)) {
-                header("Location: $url_base&error=" . urlencode("Datos incompletos para actualizar la tutoría."));
+            if (!$id_tutoria || !$id_tutor || !$id_materia || empty($fecha) || empty($hora_inicio) || empty($hora_fin)) {
+                header("Location: $url_base&error=" . urlencode("Datos incompletos para actualizar la sesión."));
                 exit();
             }
 
@@ -120,23 +125,27 @@ switch ($accion) {
                 $datos_antes = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
                 // --- FIN PASO 1 ---
 
-                // Realizamos el Update
-                $tutoriaModel->actualizar(
+                // Realizamos el Update a través del modelo
+                $actualizado = $tutoriaModel->actualizar(
                     $id_tutoria, $id_estudiante, $id_tutor, $id_materia, $id_bloque, 
                     $fecha, $periodo, $hora_inicio, $hora_fin, 
                     $modalidad, $lugar_o_enlace, $estado, $observaciones
                 );
 
-                // --- INICIO DE AUDITORÍA (PASO 2: GUARDAR) ---
-                $datos_nuevos = [
-                    'id_estudiante' => $id_estudiante, 'id_tutor' => $id_tutor, 
-                    'id_materia' => $id_materia, 'fecha' => $fecha, 
-                    'hora_inicio' => $hora_inicio, 'hora_fin' => $hora_fin, 'estado' => $estado
-                ];
-                $auditoriaModel->registrarAccion($usuario_actual, 'ACTUALIZAR', 'tutorias', $id_tutoria, $datos_antes, $datos_nuevos);
-                // --- FIN DE AUDITORÍA ---
+                if ($actualizado) {
+                    // --- INICIO DE AUDITORÍA (PASO 2: GUARDAR) ---
+                    $datos_nuevos = [
+                        'id_tutor' => $id_tutor, 'id_materia' => $id_materia, 
+                        'fecha' => $fecha, 'hora_inicio' => $hora_inicio, 
+                        'hora_fin' => $hora_fin, 'estado' => $estado, 'id_bloque' => $id_bloque
+                    ];
+                    $auditoriaModel->registrarAccion($usuario_actual, 'ACTUALIZAR', 'tutorias', $id_tutoria, $datos_antes, $datos_nuevos);
+                    // --- FIN DE AUDITORÍA ---
 
-                header("Location: $url_base&exito=" . urlencode("Datos de la tutoría actualizados exitosamente."));
+                    header("Location: $url_base&exito=" . urlencode("Configuración de la sesión actualizada exitosamente."));
+                } else {
+                    header("Location: $url_base&error=" . urlencode("Error al intentar actualizar la sesión."));
+                }
                 exit();
             } catch (Throwable $e) {
                 header("Location: $url_base&error=" . urlencode("Error interno al actualizar: " . $e->getMessage()));
@@ -146,7 +155,7 @@ switch ($accion) {
         break;
 
     // ------------------------------------------------------------------------
-    // ELIMINAR TUTORÍA REGULAR
+    // ELIMINAR SESIÓN COMPLETA (Y SUS INSCRITOS POR CASCADE)
     // ------------------------------------------------------------------------
     case 'eliminar':
         $id_tutoria = $_GET['id'] ?? null;
@@ -159,17 +168,21 @@ switch ($accion) {
                 $datos_antes = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
                 // --- FIN PASO 1 ---
 
-                // Realizamos el borrado
-                $tutoriaModel->eliminar($id_tutoria);
+                // Realizamos el borrado a través del modelo
+                $borrado = $tutoriaModel->eliminar($id_tutoria);
 
-                // --- INICIO DE AUDITORÍA (PASO 2: GUARDAR) ---
-                $auditoriaModel->registrarAccion($usuario_actual, 'ELIMINAR', 'tutorias', $id_tutoria, $datos_antes, []);
-                // --- FIN DE AUDITORÍA ---
-
-                header("Location: $url_base&exito=" . urlencode("La tutoría fue borrada del cronograma correctamente."));
+                if ($borrado) {
+                    // --- INICIO DE AUDITORÍA (PASO 2: GUARDAR) ---
+                    $auditoriaModel->registrarAccion($usuario_actual, 'ELIMINAR', 'tutorias', $id_tutoria, $datos_antes, []);
+                    // --- FIN DE AUDITORÍA ---
+                    
+                    header("Location: $url_base&exito=" . urlencode("La sesión y todas sus inscripciones fueron borradas."));
+                } else {
+                    header("Location: $url_base&error=" . urlencode("No se pudo eliminar la sesión."));
+                }
                 exit();
             } catch (Throwable $e) {
-                header("Location: $url_base&error=" . urlencode("No se puede borrar la tutoría porque existen evaluaciones vinculadas."));
+                header("Location: $url_base&error=" . urlencode("Error: existen registros o evaluaciones que dependen de esta sesión."));
                 exit();
             }
         } else {

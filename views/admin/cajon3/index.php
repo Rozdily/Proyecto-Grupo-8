@@ -27,12 +27,12 @@ $lista_expedientes = [];
 $reuniones_mg = [];
 $lista_asignaciones = [];
 
-// Variables globales para Tutorías Regulares (Académico)
+// Variables globales para Tutorías Regulares (Académico - Lógica Grupal)
 $tutorias_regulares = [];
-$lista_estudiantes = [];
 $lista_tutores = [];
 $lista_materias = [];
 $lista_bloques = [];
+$lista_estudiantes = []; // Se mantiene vacía por defecto para no romper el partial si aún lo busca
 
 // Extracción segura de datos
 try {
@@ -55,12 +55,15 @@ try {
     $reuniones_mg = $reunionModel->listarTodas();
     $lista_asignaciones = $reunionModel->obtenerAsignacionesParaFormulario();
 
-    // 4. Tutorías de Materias Regulares (Académico)
+    // 4. Tutorías de Materias Regulares (Académico - Grupos)
+    // El modelo ya fue actualizado para traer conteo y concatenación de estudiantes
     $tutorias_regulares = $tutoriaModel->listarTodas();
-    $lista_estudiantes = $tutoriaModel->obtenerEstudiantes();
     $lista_tutores = $tutoriaModel->obtenerTutores();
     $lista_materias = $tutoriaModel->obtenerMaterias();
     $lista_bloques = $tutoriaModel->obtenerBloques();
+    
+    // Dejamos disponible la lista de estudiantes por si la necesitas para el "Gestor de Grupos" más adelante
+    $lista_estudiantes = $tutoriaModel->obtenerEstudiantes();
 
 } catch (Throwable $e) {
     $mensaje_error = "Error al cargar los datos del cronograma: " . $e->getMessage();
