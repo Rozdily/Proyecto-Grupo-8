@@ -2,19 +2,46 @@
 /**
  * ARCHIVO: views/admin/cajon5/partials/reportes_rendimiento.php
  * Interfaz para el Dashboard Analítico de Rendimiento Académico y Tutorías.
+ * Adaptado para cargar periodos dinámicamente mediante PeriodoModel.
  */
 
-// 1. Cargar dependencias directamente usando tu ruta raíz confirmada
+// 1. Cargar dependencias
 require_once __DIR__ . '/../../../../config/conexion.php';
 require_once __DIR__ . '/../../../../models/sistema/ReporteModel/index.php';
+// NUEVO: Importar modelo de periodos
+require_once __DIR__ . '/../../../../models/estructuras/PeriodoModel/index.php';
 
-// 2. Obtener el periodo seleccionado en el selector (o usar I-2026 por defecto)
-$periodo_seleccionado =$_GET['periodo'] ?? 'I-2026';
+// 2. Instanciar modelos
+$periodoModel = new PeriodoModel($pdo);
+$reporteModel = new ReporteModel($pdo);
 
-// 3. Instanciar el modelo y obtener datos reales de tu BD
-$reporteModel = new ReporteModel($pdo);$datos_dashboard = $reporteModel->obtenerDatosDashboard($periodo_seleccionado);
+// 3. Obtener lista de periodos activos para el selector
+$lista_periodos = [];
+try {
+    $lista_periodos =$periodoModel->listarTodos();
+} catch (Exception $e) {
+    // Si falla, se queda vacío
+}
 
-// 4. Si la base de datos devuelve vacío para ese periodo, cargamos ceros para evitar errores visuales
+// 4. Determinar qué periodo mostrar (por defecto, el primero de la lista o ID 1)
+$id_periodo_seleccionado =$_GET['id_periodo'] ?? (!empty($lista_periodos) ?$lista_periodos[0]['id_periodo'] : 1);
+
+// Encontrar el nombre del periodo para mostrarlo en el título
+$nombre_periodo_actual = 'Actual';
+foreach($lista_periodos as$per) {
+    if($per['id_periodo'] ==$id_periodo_seleccionado) {
+        $nombre_periodo_actual =$per['codigo'];
+        break;
+    }
+}
+
+// 5. Obtener datos reales de la BD pasando el ID numérico
+try {
+    $datos_dashboard = $reporteModel->obtenerDatosDashboard($id_periodo_seleccionado);
+} catch (Exception $e) {$datos_dashboard = [];
+}
+
+// 6. Si la base de datos devuelve vacío para ese periodo, cargamos ceros para evitar errores visuales
 if (empty($datos_dashboard) || empty($datos_dashboard['kpis']['total_sesiones'])) {$datos_dashboard = [
         'kpis' => [
             'total_sesiones' => 0,
@@ -40,16 +67,23 @@ if (empty($datos_dashboard) || empty($datos_dashboard['kpis']['total_sesiones'])
     <!-- BARRA DE FILTROS -->
     <div class="row mb-4 align-items-center">
         <div class="col-md-6">
-            <h6 class="mb-0 text-dark fw-bold"><i class="fas fa-tachometer-alt me-2"></i>Dashboard de Rendimiento (Periodo <?php echo htmlspecialchars($periodo_seleccionado); ?>)</h6>
+            <h6 class="mb-0 text-dark fw-bold"><i class="fas fa-tachometer-alt me-2"></i>Dashboard de Rendimiento (Periodo <?php echo htmlspecialchars($nombre_periodo_actual); ?>)</h6>
         </div>
         <div class="col-md-6 d-flex justify-content-end gap-2">
-            <!-- Formulario para el filtro -->
+            <!-- Formulario dinámico para el filtro -->
             <form action="" method="GET" class="d-flex gap-2 m-0" id="form-filtro-periodo">
                 <input type="hidden" name="seccion" value="cajon5">
                 <input type="hidden" name="tab" value="reportes">
-                <select class="form-select form-select-sm border-plano w-auto" name="periodo" id="filtro-periodo" onchange="document.getElementById('form-filtro-periodo').submit();">
-                    <option value="I-2026" <?php echo $periodo_seleccionado == 'I-2026' ? 'selected' : ''; ?>>Periodo I-2026</option>
-                    <option value="II-2026" <?php echo $periodo_seleccionado == 'II-2026' ? 'selected' : ''; ?>>Periodo II-2026</option>
+                <select class="form-select form-select-sm border-plano w-auto fw-bold text-institucional" name="id_periodo" id="filtro-periodo" onchange="document.getElementById('form-filtro-periodo').submit();">
+                    <?php if (!empty($lista_periodos)): ?>
+                        <?php foreach($lista_periodos as$per): ?>
+                            <option value="<?php echo $per['id_periodo']; ?>" <?php echo $id_periodo_seleccionado ==$per['id_periodo'] ? 'selected' : ''; ?>>
+                                Periodo <?php echo htmlspecialchars($per['codigo']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <option value="1">Sin periodos registrados</option>
+                    <?php endif; ?>
                 </select>
             </form>
             <button class="btn btn-sm btn-outline-secondary border-plano" onclick="window.print()"><i class="fas fa-print me-1"></i> Exportar PDF</button>
@@ -175,13 +209,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const dbData = <?php echo json_encode($datos_dashboard); ?>;
 
-    /**
-     * FUNCIÓN 1: Generador Inteligente de Paletas de Colores
-     * Garantiza colores únicos sin importar si hay 5, 10 o 100 elementos en el gráfico.
-     */
     function generarPaletaDinamica(cantidad) {
         const paleta = [];
-        // Base institucional principal (10 colores muy distintivos)
         const coloresBase = [
             '#1a3b5c', '#2c5b8e', '#e28743', '#4180c5', '#198754', 
             '#ffc107', '#dc3545', '#6f42c1', '#fd7e14', '#20c997'
@@ -189,11 +218,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         for (let i = 0; i < cantidad; i++) {
             if (i < coloresBase.length) {
-                // Usar colores predefinidos si estamos dentro de los primeros 10
                 paleta.push(coloresBase[i]);
             } else {
-                // Si la BD devuelve más de 10 datos, generar colores únicos proceduralmente 
-                // usando el "Ángulo Dorado" (137.5 grados) para separarlos drásticamente en la rueda HSL
                 const hue = Math.floor((i * 137.508) % 360);
                 paleta.push(`hsl(${hue}, 70%, 50%)`);
             }
@@ -201,19 +227,13 @@ document.addEventListener('DOMContentLoaded', function() {
         return paleta;
     }
 
-    /**
-     * FUNCIÓN 2: Validador y Renderizador de Gráficos (Empty States)
-     * Si no hay datos, oculta el canvas y pinta un mensaje elegante en su lugar.
-     */
     function renderizarGrafico(canvasId, contenedorId, dataLabels, initChartCallback) {
         const canvas = document.getElementById(canvasId);
         const contenedor = document.getElementById(contenedorId);
 
         if (dataLabels && dataLabels.length > 0) {
-            // Hay datos: Llamamos a la función constructora del gráfico
             initChartCallback(canvas);
         } else {
-            // No hay datos: Mostramos el Empty State formal
             canvas.style.display = 'none';
             contenedor.innerHTML = `
                 <div class="d-flex flex-column h-100 align-items-center justify-content-center text-muted">
@@ -225,11 +245,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // ==========================================
-    // RENDERIZADO DE GRÁFICOS
-    // ==========================================
-
-    // 1. Gráfico de Barras: Materias
     renderizarGrafico('chartMaterias', 'contenedorMaterias', dbData.materias_demanda.labels, function(ctx) {
         new Chart(ctx, {
             type: 'bar',
@@ -250,7 +265,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 2. Gráfico de Torta: Estado (Aquí los estados son fijos, pero usamos generador por seguridad)
     renderizarGrafico('chartEstado', 'contenedorEstado', dbData.tutorias_estado.labels, function(ctx) {
         new Chart(ctx, {
             type: 'doughnut',
@@ -270,7 +284,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 3. Gráfico de Barras: Desempeño
     renderizarGrafico('chartDesempeno', 'contenedorDesempeno', dbData.desempeno_docente.labels, function(ctx) {
         new Chart(ctx, {
             type: 'bar',
@@ -291,7 +304,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 4. Gráfico de Torta: Tutores
     renderizarGrafico('chartTutores', 'contenedorTutores', dbData.distribucion_tutor.labels, function(ctx) {
         new Chart(ctx, {
             type: 'pie',
@@ -310,7 +322,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 5. Gráfico de Torta: Meses
     renderizarGrafico('chartMeses', 'contenedorMeses', dbData.sesiones_mes.labels, function(ctx) {
         new Chart(ctx, {
             type: 'pie',

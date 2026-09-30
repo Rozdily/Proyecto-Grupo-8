@@ -47,8 +47,8 @@ function getParam($clave, $default, $parametros) {
                     <!-- Parámetro: Mínimo de días anticipación -->
                     <div class="row align-items-center mb-4 pb-3 border-bottom border-plano">
                         <div class="col-md-7">
-                            <label class="form-label fw-bold mb-0">Mínimo de anticipación para solicitar</label>
-                            <div class="form-text text-muted mt-0">Días de margen obligatorios (Ej: 2 días significa que hoy no se puede pedir para mañana).</div>
+                            <label class="form-label fw-bold mb-0">Anticipación mínima para reservas</label>
+                            <div class="form-text text-muted mt-0">Días de margen obligatorios entre la solicitud y la fecha de la clase. (Ej: Un valor de 2 impide agendar tutorías para hoy o mañana).</div>
                         </div>
                         <div class="col-md-5">
                             <div class="input-group input-group-sm">
@@ -60,16 +60,46 @@ function getParam($clave, $default, $parametros) {
                     </div>
 
                     <!-- Parámetro: Máximo de días a futuro -->
-                    <div class="row align-items-center">
+                    <div class="row align-items-center mb-4 pb-3 border-bottom border-plano">
                         <div class="col-md-7">
-                            <label class="form-label fw-bold mb-0">Máximo de días a futuro</label>
-                            <div class="form-text text-muted mt-0">Límite máximo de tiempo para agendar (Ej: 60 días restringe el calendario a no más de 2 meses).</div>
+                            <label class="form-label fw-bold mb-0">Anticipación máxima permitida (Límite futuro)</label>
+                            <div class="form-text text-muted mt-0">Evita que los estudiantes saturen o bloqueen los horarios de los tutores con meses de anticipación.</div>
                         </div>
                         <div class="col-md-5">
                             <div class="input-group input-group-sm">
                                 <input type="number" name="parametros[MAX_DIAS_ANTICIPACION_TUTORIA]" class="form-control border-plano text-center fw-bold" 
                                        value="<?php echo getParam('MAX_DIAS_ANTICIPACION_TUTORIA', '60', $parametros); ?>" min="1" max="365" required>
                                 <span class="input-group-text bg-white border-plano">días</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Parámetro: Límite de tutorías simultáneas -->
+                    <div class="row align-items-center mb-4 pb-3 border-bottom border-plano">
+                        <div class="col-md-7">
+                            <label class="form-label fw-bold mb-0">Límite de tutorías simultáneas</label>
+                            <div class="form-text text-muted mt-0">Cantidad máxima de solicitudes (pendientes, confirmadas o en proceso) permitidas por estudiante al mismo tiempo.</div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="input-group input-group-sm">
+                                <input type="number" name="parametros[MAX_TUTORIAS_ACTIVAS]" class="form-control border-plano text-center fw-bold" 
+                                       value="<?php echo getParam('MAX_TUTORIAS_ACTIVAS', '1', $parametros); ?>" min="1" max="10" required>
+                                <span class="input-group-text bg-white border-plano">sesiones</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NUEVO Parámetro: Sesiones por Módulo -->
+                    <div class="row align-items-center">
+                        <div class="col-md-7">
+                            <label class="form-label fw-bold mb-0">Clases por defecto por módulo</label>
+                            <div class="form-text text-muted mt-0">Cantidad de sesiones que incluye un paquete de tutoría cuando el estudiante lo solicita.</div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="input-group input-group-sm">
+                                <input type="number" name="parametros[SESIONES_POR_MODULO]" class="form-control border-plano text-center fw-bold" 
+                                       value="<?php echo getParam('SESIONES_POR_MODULO', '7', $parametros); ?>" min="1" max="20" required>
+                                <span class="input-group-text bg-white border-plano">clases</span>
                             </div>
                         </div>
                     </div>

@@ -1,7 +1,7 @@
 <?php
 /**
  * ARCHIVO: views/estudiante/cajon3/index.php
- * Vista de Seguimiento: Solicitudes Pendientes e Historial de Tutorías (Grupal).
+ * Vista de Seguimiento: Solicitudes Pendientes e Historial de Tutorías (Actualizado con Módulos de Clases).
  */
 
 require_once __DIR__ . '/../../../config/conexion.php';
@@ -13,15 +13,15 @@ $historial = [];
 
 if (isset($pdo) && $id_usuario > 0) {
     try {
-        // 1. Obtener ID real del estudiante
         $stmtEst = $pdo->prepare("SELECT id_estudiante FROM estudiantes WHERE id_usuario = ?");
         $stmtEst->execute([$id_usuario]);
         $id_estudiante = $stmtEst->fetchColumn();
 
         if ($id_estudiante) {
-            // 2. Consulta general vinculando con la tabla puente
+            // Consulta actualizada incluyendo tope_clases y clases_impartidas
             $sql = "SELECT t.id_tutoria, t.fecha, t.hora_inicio, t.hora_fin, t.modalidad, 
                            t.lugar_o_enlace, t.estado, t.motivo_cancelacion, 
+                           t.tope_clases, t.clases_impartidas,
                            te.observaciones_estudiante as observaciones, 
                            m.nombre_materia, u.nombre as tutor_nom, u.apellido as tutor_ape, 
                            b.nombre_bloque
@@ -38,7 +38,6 @@ if (isset($pdo) && $id_usuario > 0) {
             $stmt->execute([$id_estudiante]);
             $todas_tutorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // 3. Separar las "Pendientes" del resto del "Historial"
             foreach ($todas_tutorias as $tut) {
                 if ($tut['estado'] === 'pendiente') {
                     $pendientes[] = $tut;
@@ -54,13 +53,10 @@ if (isset($pdo) && $id_usuario > 0) {
 ?>
 
 <style>
-    /* Estilos Premium para Cajón 3 */
     .section-title {
         font-size: 1.1rem; font-weight: 700; color: #1e293b;
         margin-bottom: 1.2rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem;
     }
-    
-    /* Tarjetas de Pendientes */
     .pending-card {
         background: #fff; border: 1px solid #fde68a; border-left: 4px solid #f59e0b;
         border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
@@ -71,8 +67,6 @@ if (isset($pdo) && $id_usuario > 0) {
         background: #fef3c7; color: #d97706; width: 45px; height: 45px;
         border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem;
     }
-
-    /* Tabla de Historial */
     .table-container { border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; overflow: hidden; }
     .table-header th { font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: 600; padding: 1rem; background-color: #f8fafc; border-bottom: 2px solid #e2e8f0; }
     .empty-state { padding: 3rem 2rem; text-align: center; color: #64748b; background: #fff; border: 1px dashed #cbd5e1; border-radius: 8px; }
@@ -113,7 +107,7 @@ if (isset($pdo) && $id_usuario > 0) {
                             <i class="fas fa-chalkboard-teacher me-1"></i> Prof. <?php echo htmlspecialchars($p['tutor_nom'] . ' ' . $p['tutor_ape']); ?>
                         </p>
                         
-                        <div class="bg-light p-2 rounded border border-light mb-0">
+                        <div class="bg-light p-2 rounded border border-light mb-2">
                             <div class="d-flex align-items-center mb-1">
                                 <i class="far fa-calendar-alt text-secondary me-2" style="width:16px;"></i>
                                 <span class="fw-semibold text-dark" style="font-size:0.9rem;"><?php echo date('d/m/Y', strtotime($p['fecha'])); ?></span>
@@ -132,6 +126,9 @@ if (isset($pdo) && $id_usuario > 0) {
                                 <?php endif; ?>
                             </div>
                         </div>
+                        <div class="mt-2 text-end">
+                            <span class="badge bg-light text-dark border"><i class="fas fa-layer-group text-primary me-1"></i> Módulo: <?php echo $p['tope_clases']; ?> Clases</span>
+                        </div>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -139,7 +136,7 @@ if (isset($pdo) && $id_usuario > 0) {
     <?php endif; ?>
 
     <!-- SECCIÓN 2: HISTORIAL COMPLETO -->
-    <h5 class="section-title mt-2"><i class="fas fa-history text-secondary me-2"></i> Historial Completo</h5>
+    <h5 class="section-title mt-2"><i class="fas fa-history text-secondary me-2"></i> Historial Completo y Módulos</h5>
     
     <div class="table-container shadow-sm mb-4">
         <div class="table-responsive">
@@ -149,7 +146,7 @@ if (isset($pdo) && $id_usuario > 0) {
                         <th class="ps-4">Fecha y Horario</th>
                         <th>Materia y Docente</th>
                         <th>Modalidad / Lugar</th>
-                        <th>Estado</th>
+                        <th>Estado y Progreso</th>
                         <th>Detalles</th>
                     </tr>
                 </thead>
@@ -165,7 +162,6 @@ if (isset($pdo) && $id_usuario > 0) {
                         </tr>
                     <?php else: ?>
                         <?php foreach ($historial as $h): 
-                            // Colores de estado
                             $badge_class = 'bg-secondary';
                             if($h['estado'] == 'confirmada') $badge_class = 'bg-info text-white';
                             if($h['estado'] == 'realizada') $badge_class = 'bg-success';
@@ -195,9 +191,15 @@ if (isset($pdo) && $id_usuario > 0) {
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <span class="badge <?php echo $badge_class; ?> px-2 py-1 border-plano">
+                                <span class="badge <?php echo $badge_class; ?> px-2 py-1 border-plano mb-1 d-inline-block">
                                     <?php echo strtoupper($h['estado']); ?>
                                 </span>
+                                <!-- Indicador visual de clases impartidas vs tope -->
+                                <div>
+                                    <span class="badge bg-light text-dark border shadow-sm">
+                                        <i class="fas fa-layer-group text-primary me-1"></i> <?php echo ($h['clases_impartidas'] ?? 0) . ' / ' . ($h['tope_clases'] ?? 1); ?> Clases
+                                    </span>
+                                </div>
                             </td>
                             <td>
                                 <?php if($h['estado'] == 'cancelada' && !empty($h['motivo_cancelacion'])): ?>
@@ -222,7 +224,6 @@ if (isset($pdo) && $id_usuario > 0) {
 </div>
 
 <script>
-// Activar tooltips de Bootstrap para ver los motivos de cancelación o notas
 document.addEventListener('DOMContentLoaded', function () {
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {

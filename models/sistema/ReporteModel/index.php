@@ -2,6 +2,7 @@
 /**
  * ARCHIVO: models/reportes/ReporteModel/index.php
  * Modelo para generar las métricas, KPIs y datos estadísticos para el Dashboard de Rendimiento.
+ * Actualizado para filtrar mediante id_periodo en lugar de la columna de texto.
  */
 class ReporteModel {
     
@@ -14,14 +15,14 @@ class ReporteModel {
     /**
      * Extrae todos los datos estructurados para los gráficos y KPIs del periodo seleccionado.
      */
-    public function obtenerDatosDashboard($periodo = 'II-2026') {
+    public function obtenerDatosDashboard($id_periodo = 1) {
         $datos = [
-            'kpis' => $this->obtenerKPIs($periodo),
-            'materias_demanda' => $this->obtenerDemandaMaterias($periodo),
-            'tutorias_estado' => $this->obtenerTutoriasPorEstado($periodo),
-            'distribucion_tutor' => $this->obtenerDistribucionTutores($periodo),
-            'sesiones_mes' => $this->obtenerSesionesPorMes($periodo),
-            'desempeno_docente' => $this->obtenerDesempenoDocente($periodo)
+            'kpis' => $this->obtenerKPIs($id_periodo),
+            'materias_demanda' => $this->obtenerDemandaMaterias($id_periodo),
+            'tutorias_estado' => $this->obtenerTutoriasPorEstado($id_periodo),
+            'distribucion_tutor' => $this->obtenerDistribucionTutores($id_periodo),
+            'sesiones_mes' => $this->obtenerSesionesPorMes($id_periodo),
+            'desempeno_docente' => $this->obtenerDesempenoDocente($id_periodo)
         ];
         return $datos;
     }
@@ -29,7 +30,7 @@ class ReporteModel {
     // ========================================================================
     // 1. INDICADORES CLAVE DE RENDIMIENTO (KPIs)
     // ========================================================================
-    private function obtenerKPIs($periodo) {
+    private function obtenerKPIs($id_periodo) {
         $kpis = [
             'total_sesiones' => 0,
             'horas_dictadas' => 0,
@@ -39,17 +40,17 @@ class ReporteModel {
         ];
 
         // 1. Total de Sesiones Registradas
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM tutorias WHERE periodo = ?");
-        $stmt->execute([$periodo]);
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM tutorias WHERE id_periodo = ?");
+        $stmt->execute([$id_periodo]);
         $kpis['total_sesiones'] = $stmt->fetchColumn() ?: 0;
 
         // 2. Horas Dictadas (Solo sesiones en estado 'realizada')
         $stmt = $this->pdo->prepare("
             SELECT SUM(TIME_TO_SEC(TIMEDIFF(hora_fin, hora_inicio))) / 3600 AS horas 
             FROM tutorias 
-            WHERE periodo = ? AND estado = 'realizada'
+            WHERE id_periodo = ? AND estado = 'realizada'
         ");
-        $stmt->execute([$periodo]);
+        $stmt->execute([$id_periodo]);
         $horas = $stmt->fetchColumn();
         $kpis['horas_dictadas'] = $horas ? round($horas, 1) : 0;
 
@@ -59,9 +60,9 @@ class ReporteModel {
                 (SUM(CASE WHEN ss.asistio = 'si' THEN 1 ELSE 0 END) / COUNT(*)) * 100 AS pct
             FROM seguimiento_sesion ss
             INNER JOIN tutorias t ON ss.id_tutoria = t.id_tutoria
-            WHERE t.periodo = ?
+            WHERE t.id_periodo = ?
         ");
-        $stmt->execute([$periodo]);
+        $stmt->execute([$id_periodo]);
         $asistencia = $stmt->fetchColumn();
         $kpis['asistencia_pct'] = $asistencia ? round($asistencia, 1) : 0;
 
@@ -70,9 +71,9 @@ class ReporteModel {
             SELECT AVG(e.calificacion) AS promedio 
             FROM evaluaciones_tutoria e
             INNER JOIN tutorias t ON e.id_tutoria = t.id_tutoria
-            WHERE t.periodo = ?
+            WHERE t.id_periodo = ?
         ");
-        $stmt->execute([$periodo]);
+        $stmt->execute([$id_periodo]);
         $satisfaccion = $stmt->fetchColumn();
         $kpis['satisfaccion_promedio'] = $satisfaccion ? round($satisfaccion, 1) : 0;
 
@@ -86,16 +87,16 @@ class ReporteModel {
     // ========================================================================
     // 2. MATERIAS CON MAYOR DEMANDA (Gráfico de Barras)
     // ========================================================================
-    private function obtenerDemandaMaterias($periodo) {
+    private function obtenerDemandaMaterias($id_periodo) {
         $sql = "SELECT m.nombre_materia, COUNT(t.id_tutoria) AS total 
                 FROM tutorias t
                 INNER JOIN materias m ON t.id_materia = m.id_materia
-                WHERE t.periodo = ?
+                WHERE t.id_periodo = ?
                 GROUP BY t.id_materia
                 ORDER BY total DESC
                 LIMIT 5";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$periodo]);
+        $stmt->execute([$id_periodo]);
         $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $labels = []; $data = [];
@@ -109,14 +110,14 @@ class ReporteModel {
     // ========================================================================
     // 3. ESTADOS DE TUTORÍAS (Gráfico de Torta)
     // ========================================================================
-    private function obtenerTutoriasPorEstado($periodo) {
+    private function obtenerTutoriasPorEstado($id_periodo) {
         $sql = "SELECT estado, COUNT(*) AS total 
                 FROM tutorias 
-                WHERE periodo = ?
+                WHERE id_periodo = ?
                 GROUP BY estado
                 ORDER BY total DESC";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$periodo]);
+        $stmt->execute([$id_periodo]);
         $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $labels = []; $data = [];
@@ -130,17 +131,17 @@ class ReporteModel {
     // ========================================================================
     // 4. DISTRIBUCIÓN POR TUTOR (Gráfico de Torta)
     // ========================================================================
-    private function obtenerDistribucionTutores($periodo) {
+    private function obtenerDistribucionTutores($id_periodo) {
         $sql = "SELECT CONCAT(u.nombre, ' ', u.apellido) AS nombre_tutor, COUNT(t.id_tutoria) AS total 
                 FROM tutorias t
                 INNER JOIN tutores tu ON t.id_tutor = tu.id_tutor
                 INNER JOIN usuarios u ON tu.id_usuario = u.id_usuario
-                WHERE t.periodo = ?
+                WHERE t.id_periodo = ?
                 GROUP BY t.id_tutor
                 ORDER BY total DESC
                 LIMIT 5";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$periodo]);
+        $stmt->execute([$id_periodo]);
         $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $labels = []; $data = [];
@@ -154,14 +155,14 @@ class ReporteModel {
     // ========================================================================
     // 5. CANTIDAD DE SESIONES POR MES (Gráfico de Torta)
     // ========================================================================
-    private function obtenerSesionesPorMes($periodo) {
+    private function obtenerSesionesPorMes($id_periodo) {
         $sql = "SELECT MONTH(fecha) AS mes, COUNT(*) AS total 
                 FROM tutorias 
-                WHERE periodo = ?
+                WHERE id_periodo = ?
                 GROUP BY MONTH(fecha)
                 ORDER BY mes ASC";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$periodo]);
+        $stmt->execute([$id_periodo]);
         $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $nombres_meses = [
@@ -180,18 +181,18 @@ class ReporteModel {
     // ========================================================================
     // 6. DESEMPEÑO DOCENTE (Gráfico de Barras)
     // ========================================================================
-    private function obtenerDesempenoDocente($periodo) {
+    private function obtenerDesempenoDocente($id_periodo) {
         $sql = "SELECT CONCAT(u.nombre, ' ', u.apellido) AS nombre_tutor, AVG(e.calificacion) AS promedio 
                 FROM evaluaciones_tutoria e
                 INNER JOIN tutorias t ON e.id_tutoria = t.id_tutoria
                 INNER JOIN tutores tu ON t.id_tutor = tu.id_tutor
                 INNER JOIN usuarios u ON tu.id_usuario = u.id_usuario
-                WHERE t.periodo = ?
+                WHERE t.id_periodo = ?
                 GROUP BY t.id_tutor
                 ORDER BY promedio DESC
                 LIMIT 5";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$periodo]);
+        $stmt->execute([$id_periodo]);
         $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $labels = []; $data = [];

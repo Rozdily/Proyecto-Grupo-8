@@ -13,6 +13,8 @@ require_once __DIR__ . '/../../../models/estructuras/GrupoTesisModel/index.php';
 require_once __DIR__ . '/../../../models/titulacion/DefensaModel/index.php';
 require_once __DIR__ . '/../../../models/tutorias/ReunionModel/index.php'; 
 require_once __DIR__ . '/../../../models/tutorias/TutoriaModel/index.php'; 
+// NUEVO: Importar modelo de periodos
+require_once __DIR__ . '/../../../models/estructuras/PeriodoModel/index.php'; 
 
 // Manejo de pestaña activa (por defecto inicia en 'hitos')
 $tab_activo = $_GET['tab'] ?? 'hitos';
@@ -32,7 +34,8 @@ $tutorias_regulares = [];
 $lista_tutores = [];
 $lista_materias = [];
 $lista_bloques = [];
-$lista_estudiantes = []; // Se mantiene vacía por defecto para no romper el partial si aún lo busca
+$lista_estudiantes = []; 
+$lista_periodos = []; // NUEVO: Para el selector de periodos
 
 // Extracción segura de datos
 try {
@@ -42,6 +45,7 @@ try {
     $defensaModel = new DefensaModel($pdo);
     $reunionModel = new ReunionModel($pdo);
     $tutoriaModel = new TutoriaModel($pdo);
+    $periodoModel = new PeriodoModel($pdo); // NUEVO
 
     // 1. Hitos y Entregas (MG)
     $hitos_entregas = $hitoModel->listarTodos();
@@ -56,13 +60,15 @@ try {
     $lista_asignaciones = $reunionModel->obtenerAsignacionesParaFormulario();
 
     // 4. Tutorías de Materias Regulares (Académico - Grupos)
-    // El modelo ya fue actualizado para traer conteo y concatenación de estudiantes
     $tutorias_regulares = $tutoriaModel->listarTodas();
     $lista_tutores = $tutoriaModel->obtenerTutores();
     $lista_materias = $tutoriaModel->obtenerMaterias();
     $lista_bloques = $tutoriaModel->obtenerBloques();
     
-    // Dejamos disponible la lista de estudiantes por si la necesitas para el "Gestor de Grupos" más adelante
+    // Obtener los periodos activos para el select
+    $lista_periodos = $periodoModel->listarTodos(); 
+    
+    // Dejamos disponible la lista de estudiantes por si la necesitas
     $lista_estudiantes = $tutoriaModel->obtenerEstudiantes();
 
 } catch (Throwable $e) {

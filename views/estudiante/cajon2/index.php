@@ -1,7 +1,7 @@
 <?php
 /**
  * ARCHIVO: views/estudiante/cajon2/index.php
- * Vista: Formulario para Solicitar Tutoría.
+ * Vista: Formulario para Solicitar Tutoría (Con soporte para Módulos de Clases dinámicos).
  */
 
 require_once __DIR__ . '/../../../config/conexion.php';
@@ -9,11 +9,12 @@ require_once __DIR__ . '/../../../config/conexion.php';
 $id_usuario =$_SESSION['id_usuario'] ?? 0;
 $id_estudiante = 0;
 $id_carrera = 0;
-$materias = [];$bloques = [];
+$materias = [];
+$bloques = [];$max_tutorias_activas = 1; 
+$sesiones_por_modulo = 7; // Valor por defecto
 
 if (isset($pdo) &&$id_usuario > 0) {
     try {
-        // 1. Obtener ID del estudiante y su carrera
         $stmtEst =$pdo->prepare("SELECT id_estudiante, id_carrera FROM estudiantes WHERE id_usuario = ?");
         $stmtEst->execute([$id_usuario]);
         if ($rowEst =$stmtEst->fetch(PDO::FETCH_ASSOC)) {
@@ -21,16 +22,25 @@ if (isset($pdo) &&$id_usuario > 0) {
             $id_carrera =$rowEst['id_carrera'];
         }
 
-        // 2. Obtener solo las materias de la carrera del estudiante
         if ($id_carrera > 0) {
             $stmtMat =$pdo->prepare("SELECT id_materia, nombre_materia FROM materias WHERE id_carrera = ? ORDER BY nombre_materia ASC");
             $stmtMat->execute([$id_carrera]);
             $materias =$stmtMat->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        // 3. Obtener los bloques horarios disponibles
         $stmtBloq =$pdo->query("SELECT id_bloque, nombre_bloque, hora_inicio, hora_fin, descripcion FROM bloques_horarios ORDER BY hora_inicio ASC");
         $bloques =$stmtBloq->fetchAll(PDO::FETCH_ASSOC);
+
+        // Obtener parámetros del sistema dinámicamente
+        $stmtParam =$pdo->query("SELECT clave, valor FROM parametros_mg WHERE clave IN ('MAX_TUTORIAS_ACTIVAS', 'SESIONES_POR_MODULO')");
+        while ($rowParam =$stmtParam->fetch(PDO::FETCH_ASSOC)) {
+            if ($rowParam['clave'] === 'MAX_TUTORIAS_ACTIVAS') {
+                $max_tutorias_activas = (int)$rowParam['valor'];
+            }
+            if ($rowParam['clave'] === 'SESIONES_POR_MODULO') {
+                $sesiones_por_modulo = (int)$rowParam['valor'];
+            }
+        }
 
     } catch (PDOException $e) {$error_bd = "No se pudieron cargar los catálogos.";
     }
@@ -38,53 +48,25 @@ if (isset($pdo) &&$id_usuario > 0) {
 ?>
 
 <style>
-    .form-card {
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
-        overflow: hidden;
+    html, body {
+        overscroll-behavior-y: none;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
     }
-    .form-header {
-        background: linear-gradient(135deg, #0B427B 0%, #1a5c9e 100%);
-        color: white;
-        padding: 2rem;
-        text-align: center;
+    html::-webkit-scrollbar, body::-webkit-scrollbar {
+        display: none;
     }
-    .form-label {
-        font-weight: 600;
-        color: #475569;
-        font-size: 0.9rem;
-        margin-bottom: 0.5rem;
-    }
-    .form-control, .form-select {
-        border-color: #cbd5e1;
-        border-radius: 6px;
-        padding: 0.6rem 1rem;
-        font-size: 0.95rem;
-    }
-    .form-control:focus, .form-select:focus {
-        border-color: #0B427B;
-        box-shadow: 0 0 0 3px rgba(11, 66, 123, 0.1);
-    }
-    .input-group-text {
-        background-color: #f8fafc;
-        border-color: #cbd5e1;
-        color: #64748b;
-    }
-    .btn-submit {
-        background-color: #0B427B;
-        color: white;
-        font-weight: bold;
-        padding: 0.8rem 2rem;
-        border-radius: 8px;
-        transition: 0.3s;
-    }
-    .btn-submit:hover {
-        background-color: #08335e;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
+
+    .form-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); overflow: hidden; }
+    .form-header { background: linear-gradient(135deg, #0B427B 0%, #1a5c9e 100%); color: white; padding: 2rem; text-align: center; }
+    .form-label { font-weight: 600; color: #475569; font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .form-control, .form-select { border-color: #cbd5e1; border-radius: 6px; padding: 0.6rem 1rem; font-size: 0.95rem; }
+    .form-control:focus, .form-select:focus { border-color: #0B427B; box-shadow: 0 0 0 3px rgba(11, 66, 123, 0.1); }
+    .input-group-text { background-color: #f8fafc; border-color: #cbd5e1; color: #64748b; }
+    .btn-submit { background-color: #0B427B; color: white; font-weight: bold; padding: 0.8rem 2rem; border-radius: 8px; transition: 0.3s; }
+    .btn-submit:hover { background-color: #08335e; transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .alerta-personalizada { background-color: #fef2f2; border-left: 4px solid #ef4444; color: #b91c1c; padding: 1rem; border-radius: 6px; font-size: 0.95rem; }
+    .alerta-info { background-color: #f0f9ff; border-left: 4px solid #0ea5e9; color: #0369a1; padding: 1rem; border-radius: 6px; font-size: 0.9rem; }
 </style>
 
 <div class="animate__animated animate__fadeIn d-flex justify-content-center">
@@ -110,12 +92,23 @@ if (isset($pdo) &&$id_usuario > 0) {
             </div>
             
             <div class="card-body p-4 p-md-5">
+                
+                <!-- CONTENEDOR INFORMATIVO ACTUALIZADO CON EL MÓDULO -->
+                <div class="alerta-info mb-4 shadow-sm">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Reglas del sistema:</strong> Puedes tener hasta <strong><?php echo $max_tutorias_activas; ?> tutoría(s) activa(s)</strong> simultáneamente. Cada solicitud genera un módulo flexible de hasta <strong><?php echo $sesiones_por_modulo; ?> clases</strong> de acompañamiento continuo.
+                </div>
+
+                <div id="contenedorError" class="alerta-personalizada d-none mb-4 shadow-sm">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong id="textoError"></strong>
+                </div>
+
                 <form id="formSolicitarTutoria">
                     <input type="hidden" name="id_estudiante" value="<?php echo $id_estudiante; ?>">
                     <input type="hidden" name="accion" value="solicitar_tutoria">
 
                     <div class="row g-4">
-                        <!-- Materia -->
                         <div class="col-md-12">
                             <label class="form-label">1. Selecciona la Materia</label>
                             <div class="input-group shadow-sm">
@@ -129,19 +122,17 @@ if (isset($pdo) &&$id_usuario > 0) {
                             </div>
                         </div>
 
-                        <!-- Tutor (Se carga con AJAX) -->
                         <div class="col-md-12">
-                            <label class="form-label">2. Selecciona el Tutor</label>
+                            <label class="form-label">2. Selecciona el Tutor (Opcional)</label>
                             <div class="input-group shadow-sm">
                                 <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
-                                <select class="form-select" id="id_tutor" name="id_tutor" required disabled>
+                                <select class="form-select" id="id_tutor" name="id_tutor" disabled>
                                     <option value="" selected>Primero selecciona una materia...</option>
                                 </select>
                             </div>
-                            <small class="text-muted mt-1 d-block"><i class="fas fa-info-circle me-1"></i>Solo aparecerán los docentes asignados a la materia elegida.</small>
+                            <small class="text-muted mt-1 d-block"><i class="fas fa-info-circle me-1"></i>Si lo dejas en blanco, el sistema te asignará a un docente disponible automáticamente.</small>
                         </div>
 
-                        <!-- Fecha y Bloque Horario -->
                         <div class="col-md-6">
                             <label class="form-label">3. Fecha Propuesta</label>
                             <div class="input-group shadow-sm">
@@ -165,7 +156,6 @@ if (isset($pdo) &&$id_usuario > 0) {
                             </div>
                         </div>
 
-                        <!-- Modalidad -->
                         <div class="col-md-12">
                             <label class="form-label">5. Modalidad Preferida</label>
                             <div class="d-flex gap-4 mt-2">
@@ -184,7 +174,6 @@ if (isset($pdo) &&$id_usuario > 0) {
                             </div>
                         </div>
 
-                        <!-- Observaciones -->
                         <div class="col-md-12">
                             <label class="form-label">6. Detalle tu consulta (Opcional pero recomendado)</label>
                             <textarea class="form-control shadow-sm" name="observaciones" rows="3" placeholder="Ej: Necesito ayuda para comprender las consultas anidadas en SQL..."></textarea>
@@ -211,19 +200,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectTutor = document.getElementById('id_tutor');
     const formSolicitar = document.getElementById('formSolicitarTutoria');
     const btnGuardar = document.getElementById('btnGuardarSol');
+    
+    const contenedorError = document.getElementById('contenedorError');
+    const textoError = document.getElementById('textoError');
 
-    // 1. EVENTO: Llenar Tutores dinámicamente al elegir Materia
     selectMateria.addEventListener('change', function() {
         const idMateria = this.value;
         
         selectTutor.innerHTML = '<option value="">Cargando tutores...</option>';
         selectTutor.disabled = true;
 
-        // Llamada AJAX al controlador para obtener los tutores
         fetch(`../../controllers/EstudianteController.php?accion=obtener_tutores_materia&id_materia=${idMateria}`)
         .then(response => response.json())
         .then(data => {
-            selectTutor.innerHTML = '<option value="" selected disabled>Elige al tutor...</option>';
+            selectTutor.innerHTML = '<option value="" selected>Sin preferencia (Cualquier docente disponible)</option>';
             
             if(data.tutores && data.tutores.length > 0) {
                 data.tutores.forEach(tutor => {
@@ -231,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 selectTutor.disabled = false;
             } else {
-                selectTutor.innerHTML = '<option value="" disabled>No hay tutores asignados a esta materia.</option>';
+                selectTutor.innerHTML = '<option value="" selected>No hay tutores asignados a esta materia.</option>';
             }
         })
         .catch(error => {
@@ -240,10 +230,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 2. EVENTO: Enviar formulario por AJAX
     formSolicitar.addEventListener('submit', function(e) {
         e.preventDefault();
         
+        contenedorError.classList.add('d-none');
         btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Enviando...';
         btnGuardar.disabled = true;
 
@@ -256,18 +246,23 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if(data.exito) {
-                // Si usamos SweetAlert (lo asumo por el estilo del proyecto), sino un alert normal.
-                alert("¡Solicitud enviada con éxito! El tutor revisará tu petición pronto.");
-                window.location.href = 'index.php?seccion=dashboard';
+                alert("¡Solicitud enviada con éxito! Revisa tu historial.");
+                window.location.href = 'index.php?seccion=cajon3';
             } else {
-                alert("Error: " + (data.error || "No se pudo procesar la solicitud."));
+                textoError.textContent = data.error || "No se pudo procesar la solicitud.";
+                contenedorError.classList.remove('d-none');
+                contenedorError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
                 btnGuardar.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Enviar Solicitud';
                 btnGuardar.disabled = false;
             }
         })
         .catch(error => {
             console.error("Error:", error);
-            alert("Ocurrió un error de conexión al enviar el formulario.");
+            textoError.textContent = "Ocurrió un error de conexión al enviar el formulario. Intenta nuevamente.";
+            contenedorError.classList.remove('d-none');
+            contenedorError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
             btnGuardar.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Enviar Solicitud';
             btnGuardar.disabled = false;
         });

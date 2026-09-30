@@ -2,6 +2,7 @@
 /**
  * ARCHIVO: controllers/TutorController.php
  * Controlador para procesar peticiones AJAX del portal del Tutor.
+ * Adaptado a la lógica de "Módulos Flexibles" (Múltiples clases por tutoría).
  */
 
 header('Content-Type: application/json; charset=utf-8');
@@ -208,6 +209,76 @@ try {
 
         echo json_encode(['exito' => true]);
         exit();
+    }
+
+    // ============================================================================
+    // ACCIÓN 6: REGISTRAR SEGUIMIENTO Y AVANCE (MÓDULOS DE CLASES FLEXIBLES)
+    // ============================================================================
+    if ($accion === 'guardar_seguimiento') {
+        $id_tutoria      = $_POST['id_tutoria'] ?? 0;
+        $asistio         = $_POST['asistio'] ?? 'si';
+        $temas_tratados  = trim($_POST['temas_tratados'] ?? '');
+        $avance          = trim($_POST['avance'] ?? 'parcial');
+        $recommendations = trim($_POST['recommendations'] ?? '');
+
+        if (empty($id_tutoria) || empty($temas_tratados)) {
+            echo json_encode(['error' => 'Debe completar los temas tratados para registrar el avance de la sesión.']);
+            exit();
+        }
+
+        try {
+            $pdo->beginTransaction();
+
+            // 1. Verificar la tutoría y obtener los topes actuales
+            $stmtCheck = $pdo->prepare("SELECT tope_clases, clases_impartidas, estado FROM tutorias WHERE id_tutoria = ? AND id_tutor = ? AND estado IN ('confirmada', 'en_proceso')");
+            $stmtCheck->execute([$id_tutoria, $id_tutor]);
+            $tutoria = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$tutoria) {
+                $pdo->rollBack();
+                echo json_encode(['error' => 'La tutoría no existe, no te pertenece o ya ha sido cerrada.']);
+                exit();
+            }
+
+            // 2. Insertar el seguimiento/bitácora individual de esta clase
+            $sqlIns = "INSERT INTO seguimiento_sesion (id_tutoria, asistio, temas_tratados, avance, recommendations) VALUES (?, ?, ?, ?, ?)";
+            $stmtIns = $pdo->prepare($sqlIns);
+            $stmtIns->execute([$id_tutoria, $asistio, $temas_tratados, $avance, $recommendations]);
+
+            // 3. Evaluar la lógica del módulo de clases
+            $nuevo_impartidas = (int)$tutoria['clases_impartidas'] + 1;
+            $tope = (int)$tutoria['tope_clases'];
+            
+            if ($nuevo_impartidas >= $tope) {
+                $nuevo_estado = 'realizada'; // Si alcanza el límite, cerramos el módulo
+            } else {
+                $nuevo_estado = 'en_proceso'; // Si quedan clases, se mantiene en proceso
+            }
+
+            // 4. Actualizar contadores y estado final en la tabla tutorías
+            $sqlUpd = "UPDATE tutorias SET clases_impartidas = ?, estado = ? WHERE id_tutoria = ?";
+            $stmtUpd = $pdo->prepare($sqlUpd);
+            $stmtUpd->execute([$nuevo_impartidas, $nuevo_estado, $id_tutoria]);
+
+            $pdo->commit();
+            
+            // Retornar mensaje condicional dependiendo de si se cerró o sigue en curso
+            echo json_encode([
+                'exito' => true, 
+                'clases_impartidas' => $nuevo_impartidas,
+                'tope_clases' => $tope,
+                'nuevo_estado' => $nuevo_estado,
+                'mensaje' => $nuevo_estado === 'realizada' ? '¡Módulo completado con éxito!' : "Avance registrado. Clase $nuevo_impartidas de $tope guardada."
+            ]);
+            exit();
+            
+        } catch (PDOException $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            echo json_encode(['error' => 'Fallo interno en la base de datos al guardar el seguimiento.']);
+            exit();
+        }
     }
 
 } catch (PDOException $e) {

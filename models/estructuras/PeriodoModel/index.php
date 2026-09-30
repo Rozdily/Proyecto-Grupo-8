@@ -87,5 +87,18 @@ class PeriodoModel {
         
         return $stmt->execute([$id_periodo]);
     }
+
+    // 7. OBTENER PERIODO ACTIVO POR RANGO DE FECHA (Validación Inteligente)
+    public function obtenerPeriodoPorFecha($fecha) {
+        $sql = "SELECT id_periodo FROM periodos_tutoria 
+                WHERE ? BETWEEN fecha_inicio AND fecha_fin 
+                AND activo = 1 
+                LIMIT 1";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$fecha]);
+        
+        // Retorna el ID del periodo si lo encuentra, o false si la fecha no entra en ningún periodo activo
+        return $stmt->fetchColumn(); 
+    }
 }
 ?>

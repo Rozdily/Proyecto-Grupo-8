@@ -37,15 +37,23 @@ $iniciales = strtoupper(substr($nombre_usuario, 0, 1) . substr($apellido_usuario
                     </a>
                 </li>
                 
-                <!-- 2. SOLICITAR TUTORÍA -->
+                <!-- NUEVO 2. TUTORÍAS DISPONIBLES -->
                 <li class="nav-item">
-                    <a class="nav-link px-3 text-white <?php echo ($seccion_actual === 'cajon2') ? 'fw-bold border-bottom border-3 border-white' : ''; ?>" 
-                       href="index.php?seccion=cajon2">
-                       <i class="fas fa-plus-square me-1"></i> Solicitar Tutoría
+                    <a class="nav-link px-3 text-white <?php echo ($seccion_actual === 'tutoriasdisponibles') ? 'fw-bold border-bottom border-3 border-white' : ''; ?>" 
+                       href="index.php?seccion=tutoriasdisponibles">
+                       <i class="fas fa-list-ul me-1"></i> Disponibles
                     </a>
                 </li>
 
-                <!-- 3. MIS TUTORÍAS -->
+                <!-- 3. SOLICITAR TUTORÍA -->
+                <li class="nav-item">
+                    <a class="nav-link px-3 text-white <?php echo ($seccion_actual === 'cajon2') ? 'fw-bold border-bottom border-3 border-white' : ''; ?>" 
+                       href="index.php?seccion=cajon2">
+                       <i class="fas fa-plus-square me-1"></i> Solicitar
+                    </a>
+                </li>
+
+                <!-- 4. MIS TUTORÍAS -->
                 <li class="nav-item">
                     <a class="nav-link px-3 text-white <?php echo ($seccion_actual === 'mistutorias') ? 'fw-bold border-bottom border-3 border-white' : ''; ?>" 
                        href="index.php?seccion=mistutorias">
@@ -53,7 +61,7 @@ $iniciales = strtoupper(substr($nombre_usuario, 0, 1) . substr($apellido_usuario
                     </a>
                 </li>
                 
-                <!-- 4. SEGUIMIENTO -->
+                <!-- 5. SEGUIMIENTO -->
                 <li class="nav-item">
                     <a class="nav-link px-3 text-white <?php echo ($seccion_actual === 'cajon3') ? 'fw-bold border-bottom border-3 border-white' : ''; ?>" 
                        href="index.php?seccion=cajon3">
@@ -65,18 +73,12 @@ $iniciales = strtoupper(substr($nombre_usuario, 0, 1) . substr($apellido_usuario
 
             <!-- Menú Derecho: Notificaciones y Perfil -->
             <div class="d-flex align-items-center text-white">
-                
-                <!-- Campana de Notificaciones -->
                 <a href="#" class="position-relative me-4 text-white text-decoration-none hover-elevate" title="Notificaciones">
                     <i class="far fa-bell fa-lg"></i>
                 </a>
-
-                <!-- Avatar Circular -->
                 <div class="rounded-circle bg-light text-institucional d-flex justify-content-center align-items-center me-2 fw-bold shadow-sm" style="width: 38px; height: 38px; font-size: 0.9rem;">
                     <?php echo $iniciales; ?>
                 </div>
-
-                <!-- Nombre y Rol -->
                 <div class="text-end me-4 lh-1">
                     <div class="fw-semibold" style="font-size: 0.9rem;">
                         <?php echo htmlspecialchars(explode(' ', $nombre_usuario)[0] . ' ' . explode(' ', $apellido_usuario)[0]); ?>
@@ -85,8 +87,6 @@ $iniciales = strtoupper(substr($nombre_usuario, 0, 1) . substr($apellido_usuario
                         Estudiante
                     </div>
                 </div>
-                
-                <!-- Botón de Salida -->
                 <a href="../../controllers/LogoutController.php" class="btn btn-outline-light btn-sm border-plano">
                     <i class="fas fa-sign-out-alt me-1"></i> Salir
                 </a>
