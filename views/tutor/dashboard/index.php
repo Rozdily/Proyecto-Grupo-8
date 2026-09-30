@@ -38,7 +38,7 @@ if ($id_usuario > 0 && isset($pdo)) {
                 if ($r['estado'] === 'realizada') $stats['completadas'] = $r['total'];
             }
 
-            // 3. Obtener la agenda próxima (Solo las CONFIRMADAS que están por venir)
+            // 3. Obtener la agenda (Se quitó el filtro de fecha actual para poder ver los datos de prueba)
             $sql_agenda = "SELECT t.fecha, t.hora_inicio, t.hora_fin, t.modalidad, t.lugar_o_enlace, 
                                   m.nombre_materia, u.nombre as est_nom, u.apellido as est_ape, 
                                   b.nombre_bloque
@@ -47,8 +47,8 @@ if ($id_usuario > 0 && isset($pdo)) {
                            JOIN estudiantes e ON t.id_estudiante = e.id_estudiante
                            JOIN usuarios u ON e.id_usuario = u.id_usuario
                            JOIN bloques_horarios b ON t.id_bloque = b.id_bloque
-                           WHERE t.id_tutor = ? AND t.estado = 'confirmada' AND t.fecha >= CURRENT_DATE
-                           ORDER BY t.fecha ASC, t.hora_inicio ASC LIMIT 5";
+                           WHERE t.id_tutor = ? AND t.estado = 'confirmada'
+                           ORDER BY t.fecha DESC, t.hora_inicio ASC LIMIT 5";
             
             $stmtAgenda = $pdo->prepare($sql_agenda);
             $stmtAgenda->execute([$id_tutor]);
@@ -150,11 +150,11 @@ if ($id_usuario > 0 && isset($pdo)) {
     <!-- AGENDA DE CLASES CONFIRMADAS -->
     <div class="row">
         <div class="col-12">
-            <h5 class="fw-bold text-dark mb-3"><i class="far fa-calendar-alt text-institucional me-2"></i> Mi Agenda Próxima</h5>
+            <h5 class="fw-bold text-dark mb-3"><i class="far fa-calendar-alt text-institucional me-2"></i> Mi Agenda Confirmada</h5>
             
             <div class="agenda-container shadow-sm mb-4">
                 <div class="agenda-header d-flex justify-content-between align-items-center">
-                    <span>Próximas Tutorías Programadas (Top 5)</span>
+                    <span>Tutorías Agendadas (Top 5)</span>
                 </div>
                 
                 <div>
@@ -162,15 +162,19 @@ if ($id_usuario > 0 && isset($pdo)) {
                         <div class="p-5 text-center text-muted">
                             <i class="far fa-smile-beam fa-3x mb-3 opacity-50"></i>
                             <h6 class="fw-bold text-dark">Agenda Libre</h6>
-                            <p class="mb-0 small">No tienes tutorías confirmadas para los próximos días.</p>
+                            <p class="mb-0 small">No tienes tutorías confirmadas registradas en el sistema.</p>
                         </div>
                     <?php else: ?>
                         <?php 
                         $meses = ['01'=>'Ene', '02'=>'Feb', '03'=>'Mar', '04'=>'Abr', '05'=>'May', '06'=>'Jun', '07'=>'Jul', '08'=>'Ago', '09'=>'Sep', '10'=>'Oct', '11'=>'Nov', '12'=>'Dic'];
+                        $hoy = date('Y-m-d');
                         foreach($agenda_proxima as $agenda): 
                             $fecha_partes = explode('-', $agenda['fecha']);
                             $dia = $fecha_partes[2];
                             $mes = $meses[$fecha_partes[1]];
+                            
+                            // Etiqueta visual para saber si es pasada o futura
+                            $etiqueta_fecha = ($agenda['fecha'] < $hoy) ? '<span class="badge bg-secondary ms-2 small">Pasada</span>' : '<span class="badge bg-success ms-2 small">Próxima</span>';
                         ?>
                             <div class="agenda-item">
                                 <div class="agenda-date">
@@ -179,7 +183,10 @@ if ($id_usuario > 0 && isset($pdo)) {
                                 </div>
                                 <div class="flex-grow-1">
                                     <div class="d-flex justify-content-between align-items-start mb-1">
-                                        <h6 class="mb-0 fw-bold text-dark"><?php echo htmlspecialchars($agenda['nombre_materia']); ?></h6>
+                                        <h6 class="mb-0 fw-bold text-dark">
+                                            <?php echo htmlspecialchars($agenda['nombre_materia']); ?>
+                                            <?php echo $etiqueta_fecha; ?>
+                                        </h6>
                                         <span class="badge bg-light border <?php echo ($agenda['modalidad'] == 'virtual') ? 'text-primary border-primary' : 'text-success border-success'; ?>">
                                             <?php echo ($agenda['modalidad'] == 'virtual') ? '<i class="fas fa-video me-1"></i> Virtual' : '<i class="fas fa-building me-1"></i> Presencial'; ?>
                                         </span>
@@ -192,7 +199,7 @@ if ($id_usuario > 0 && isset($pdo)) {
                                         <span><i class="fas fa-map-marker-alt me-1"></i> 
                                             <?php 
                                             if ($agenda['modalidad'] == 'virtual' && filter_var($agenda['lugar_o_enlace'], FILTER_VALIDATE_URL)) {
-                                                echo '<a href="'.htmlspecialchars($agenda['lugar_o_enlace']).'" target="_blank">Enlace de reunión</a>';
+                                                echo '<a href="'.htmlspecialchars($agenda['lugar_o_enlace']).'" target="_blank" class="text-decoration-none">Enlace de reunión</a>';
                                             } else {
                                                 echo htmlspecialchars($agenda['lugar_o_enlace']); 
                                             }

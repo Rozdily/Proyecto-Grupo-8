@@ -5,7 +5,7 @@
  */
 session_start();
 
-// Validar que el usuario sea tutor (id_rol = 2)[cite: 1]
+// Validar que el usuario sea tutor (id_rol = 2)
 if (!isset($_SESSION['id_rol']) || $_SESSION['id_rol'] != 2) {
     header("Location: ../login/index.php");
     exit();
@@ -22,6 +22,20 @@ $seccion = $_GET['seccion'] ?? 'dashboard';
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
+    <!-- Estilos para control de scroll -->
+    <style>
+        /* Ocultar scrollbar para Chrome, Safari y Opera */
+        html::-webkit-scrollbar, body::-webkit-scrollbar {
+            display: none;
+        }
+        /* Ocultar scrollbar (Firefox/Edge) y bloquear el rebote blanco (Overscroll) */
+        html, body {
+            -ms-overflow-style: none;  /* IE y Edge */
+            scrollbar-width: none;  /* Firefox */
+            overscroll-behavior: none; /* Evita el espacio blanco al desplazar por demás */
+        }
+    </style>
+
     <!-- Include Global del Header (CSS, FontAwesome, etc.) -->
     <?php include '../../includes/header.php'; ?>
 </head>
