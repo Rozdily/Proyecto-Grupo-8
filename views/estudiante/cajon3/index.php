@@ -1,7 +1,7 @@
 <?php
 /**
  * ARCHIVO: views/estudiante/cajon3/index.php
- * Vista de Seguimiento: Solicitudes Pendientes e Historial de Tutorías.
+ * Vista de Seguimiento: Solicitudes Pendientes e Historial de Tutorías (Grupal).
  */
 
 require_once __DIR__ . '/../../../config/conexion.php';
@@ -19,9 +19,10 @@ if (isset($pdo) && $id_usuario > 0) {
         $id_estudiante = $stmtEst->fetchColumn();
 
         if ($id_estudiante) {
-            // 2. Consulta general de todas las tutorías del estudiante[cite: 3]
+            // 2. Consulta general vinculando con la tabla puente
             $sql = "SELECT t.id_tutoria, t.fecha, t.hora_inicio, t.hora_fin, t.modalidad, 
-                           t.lugar_o_enlace, t.estado, t.observaciones, t.motivo_cancelacion, 
+                           t.lugar_o_enlace, t.estado, t.motivo_cancelacion, 
+                           te.observaciones_estudiante as observaciones, 
                            m.nombre_materia, u.nombre as tutor_nom, u.apellido as tutor_ape, 
                            b.nombre_bloque
                     FROM tutorias t
@@ -29,7 +30,8 @@ if (isset($pdo) && $id_usuario > 0) {
                     JOIN tutores tu ON t.id_tutor = tu.id_tutor
                     JOIN usuarios u ON tu.id_usuario = u.id_usuario
                     JOIN bloques_horarios b ON t.id_bloque = b.id_bloque
-                    WHERE t.id_estudiante = ? 
+                    JOIN tutoria_estudiantes te ON t.id_tutoria = te.id_tutoria
+                    WHERE te.id_estudiante = ? 
                     ORDER BY t.fecha DESC, t.hora_inicio DESC";
             
             $stmt = $pdo->prepare($sql);
@@ -204,7 +206,7 @@ if (isset($pdo) && $id_usuario > 0) {
                                     </button>
                                 <?php elseif(!empty($h['observaciones'])): ?>
                                     <button type="button" class="btn btn-sm btn-light border border-plano text-muted" data-bs-toggle="tooltip" title="<?php echo htmlspecialchars($h['observaciones']); ?>">
-                                        <i class="far fa-comment-alt"></i>
+                                        <i class="far fa-comment-alt"></i> Mi nota
                                     </button>
                                 <?php else: ?>
                                     <span class="text-muted small">-</span>
